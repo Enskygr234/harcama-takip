@@ -42,7 +42,8 @@
   .ozet { padding:4px 4px 16px; }
   .ozet small { display:block; font-weight:600; font-size:.95rem; color:var(--soluk); }
   .ozet .buyuk { font-weight:800; font-size:clamp(2.1rem,10.5vw,2.8rem); line-height:1.1; letter-spacing:-.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .eksi { color:var(--kirmizi); }
+  .eksi, .gider { color:var(--kirmizi); }
+  .gelir { color:var(--yesil); }
   .ust-satir { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; min-height:48px; }
   .geri { display:inline-flex; align-items:center; gap:6px; min-height:48px; padding:0 14px 0 8px; margin-left:-8px; border-radius:14px; font-weight:700; }
   .ikincil { min-height:44px; padding:0 14px; border:1.5px solid var(--cizgi); border-radius:14px; font-weight:700; font-size:.92rem; background:var(--kart); }
@@ -55,9 +56,9 @@
   .kart-bas b { font-weight:800; font-size:1.25rem; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .kart > .tutar { font-weight:800; font-size:1.85rem; line-height:1.2; margin-top:4px; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ray { height:10px; background:var(--ray); border-radius:5px; margin-top:10px; overflow:hidden; }
-  .dolu { height:100%; background:var(--yesil); border-radius:5px; }
-  .dolu.asim { background:var(--kirmizi); }
-  .alt-bilgi { display:flex; justify-content:space-between; gap:10px; margin-top:8px; font-weight:600; font-size:.9rem; color:var(--soluk); }
+  .ray.butce { background:color-mix(in srgb, var(--yesil) 38%, var(--ray)); }
+  .dolu { height:100%; background:var(--kirmizi); border-radius:5px; }
+  .alt-bilgi { display:flex; justify-content:space-between; gap:10px; margin-top:8px; font-weight:700; font-size:.9rem; }
   .bos { color:var(--soluk); font-weight:600; font-size:.92rem; margin-top:8px; }
   .yeni-proje { width:100%; min-height:54px; border:1.5px dashed var(--soluk); border-radius:18px; font-weight:700; text-align:center; }
 
@@ -69,7 +70,7 @@
   .bolum { font-weight:800; font-size:1.1rem; margin:20px 4px 10px; }
   .gun-basi { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-weight:800; font-size:.95rem; padding:14px 0 6px; border-bottom:1.5px solid var(--yazi); }
   .gun-basi:first-child { padding-top:0; }
-  .gun-basi span:last-child { color:var(--soluk); font-weight:700; }
+  .gun-basi span:last-child { font-weight:700; }
   .satir { display:grid; grid-template-columns:1fr auto 44px; align-items:center; gap:6px; min-height:56px; border-bottom:1px solid var(--cizgi); }
   .satir:last-child { border-bottom:0; }
   .satir.yeni { animation:parla 1.2s ease-out; }
@@ -79,7 +80,6 @@
   .satir .ne b { display:block; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .satir .ne small { color:var(--soluk); font-weight:600; }
   .satir .tutar { font-weight:800; white-space:nowrap; }
-  .satir .gelir { color:var(--yesil); }
   .sil { width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--soluk); border-radius:12px; }
 
   /* Notlar */
@@ -123,7 +123,9 @@
   .tutamac { width:44px; height:5px; border-radius:3px; background:var(--cizgi); margin:-8px auto 14px; }
   .tur { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:5px; background:var(--zemin); border-radius:16px; margin-bottom:12px; }
   .tur button { min-height:46px; border-radius:12px; font-weight:800; text-align:center; color:var(--soluk); }
-  .tur button[aria-pressed="true"] { background:var(--kart); color:var(--yazi); box-shadow:0 1px 4px rgba(0,0,0,.14); }
+  .tur button[aria-pressed="true"] { background:var(--kart); box-shadow:0 1px 4px rgba(0,0,0,.14); }
+  #turGider[aria-pressed="true"] { color:var(--kirmizi); }
+  #turGelir[aria-pressed="true"] { color:var(--yesil); }
   form.kayit { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   form.kayit .tam { grid-column:1 / -1; }
   #amount { font-weight:800; font-size:1.7rem; min-height:64px; -moz-appearance:textfield; appearance:textfield; }
@@ -158,11 +160,11 @@
     <div class="kart">
       <div class="kart-bas"><b id="pName"></b></div>
       <div class="tutar num" id="pBal"></div>
-      <div class="ray" id="pRay"><div class="dolu" id="pFill"></div></div>
+      <div class="ray butce" id="pRay"><div class="dolu" id="pFill"></div></div>
       <div class="bos" id="pRatio"></div>
       <div class="ikili">
-        <div><small>Gelir</small><b class="num" id="pInc"></b></div>
-        <div><small>Gider</small><b class="num" id="pExp"></b></div>
+        <div><small>Gelir</small><b class="num gelir" id="pInc"></b></div>
+        <div><small>Gider</small><b class="num gider" id="pExp"></b></div>
       </div>
     </div>
     <h2 class="bolum">Bugünün notu</h2>
@@ -188,7 +190,7 @@
   <section id="v-stats" hidden>
     <div class="ozet">
       <small>Toplam gider</small>
-      <div class="buyuk num" id="sTotal">₺0,00</div>
+      <div class="buyuk num gider" id="sTotal">₺0,00</div>
     </div>
     <div class="cipler" id="sFilter" role="group" aria-label="Proje seçimi" style="margin-bottom:12px"></div>
     <div class="kart" id="bars"></div>
@@ -284,7 +286,7 @@
     const exp = list.filter(i => i.cat !== 'gelir').reduce((s, i) => s + i.amount, 0);
     return { inc, exp, bal: inc - exp };
   };
-  const setBar = (fill, s) => { fill.style.width = (s.inc > 0 ? Math.min(100, s.exp / s.inc * 100) : (s.exp > 0 ? 100 : 0)) + '%'; fill.classList.toggle('asim', s.exp > s.inc); };
+  const setBar = (fill, s) => { fill.style.width = (s.inc > 0 ? Math.min(100, s.exp / s.inc * 100) : (s.exp > 0 ? 100 : 0)) + '%'; };
 
   function show(v, projId) {
     view = v; cur = v === 'proj' ? projId : null;
@@ -320,10 +322,10 @@
       head.insertAdjacentHTML('beforeend', CHEVRON);
       card.append(head, el('div', 'tutar num' + (s.bal < 0 ? ' eksi' : ''), money(s.bal)));
       if (list.length) {
-        const ray = el('div', 'ray'), fill = el('div', 'dolu');
+        const ray = el('div', 'ray butce'), fill = el('div', 'dolu');
         setBar(fill, s); ray.append(fill);
         const info = el('div', 'alt-bilgi num');
-        info.append(el('span', '', 'Gider ' + short(s.exp)), el('span', '', 'Gelir ' + short(s.inc)));
+        info.append(el('span', 'gider', 'Gider ' + short(s.exp)), el('span', 'gelir', 'Gelir ' + short(s.inc)));
         card.append(ray, info);
       } else {
         card.append(el('div', 'bos', 'Henüz kayıt yok. Dokunup ilk gideri ekleyin.'));
@@ -382,7 +384,7 @@
         lastDay = day;
         const dayExp = sorted.filter(x => ymd(new Date(x.date)) === day && x.cat !== 'gelir').reduce((t, x) => t + x.amount, 0);
         const head = el('div', 'gun-basi');
-        head.append(el('span', '', trDate(day)), el('span', 'num', dayExp ? 'Gider ' + short(dayExp) : ''));
+        head.append(el('span', '', trDate(day)), el('span', 'num gider', dayExp ? 'Gider ' + short(dayExp) : ''));
         rows.append(head);
       }
       const isInc = i.cat === 'gelir';
@@ -392,7 +394,7 @@
       const del = el('button', 'sil');
       del.type = 'button'; del.innerHTML = CROSS; del.setAttribute('aria-label', i.desc + ' kaydını sil');
       del.onclick = () => { items = items.filter(x => x.id !== i.id); saveItems(); render(); };
-      row.append(what, el('span', 'tutar num' + (isInc ? ' gelir' : ''), (isInc ? '+' : '−') + money(i.amount)), del);
+      row.append(what, el('span', 'tutar num ' + (isInc ? 'gelir' : 'gider'), (isInc ? '+' : '−') + money(i.amount)), del);
       rows.append(row);
     });
     lastAdded = null;
