@@ -12,7 +12,7 @@ Proje bazlı gelir/gider takip uygulaması: bakiye özeti, kategoriye göre gide
 
 ## Android uygulaması (APK)
 
-**İndir:** https://github.com/Enskygr234/harcama-takip/releases/latest/download/harcama-takip.apk
+**İndir:** GitHub'a giriş yapıp Actions sekmesinde en son başarılı "Android APK" çalışmasını açın, altta *harcama-takip-apk* dosyasını indirin (zip içinden `harcama-takip.apk` çıkar). `apk-v` ile başlayan bir etiketle sürüm oluşturulursa APK, Sürümler (Releases) sayfasına da eklenir.
 
 Telefonda bağlantıyı açın, inen dosyaya dokunun; "bilinmeyen kaynaklardan yükleme" izni istenirse verin. Uygulama internetsiz çalışır, kayıtlar telefonda saklanır. Uygulamadaki kayıtlar, tarayıcıda siteye girdiğiniz kayıtlardan ayrıdır.
 
