@@ -1,5 +1,5 @@
 // Harcama Takip — çevrimdışı çalışma için servis çalışanı
-const CACHE = 'harcama-takip-v3';
+const CACHE = 'harcama-takip-v4';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -17,7 +17,14 @@ self.addEventListener('activate', e => {
 // Önce ağ (güncel sürüm gelsin), ağ yoksa önbellek
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  // Yazı tipleri: önce önbellek (çevrimdışıyken de aynı görünüm)
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    e.respondWith(caches.open(CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { c.put(req, res.clone()); return res; }))));
+    return;
+  }
+  if (url.origin !== location.origin) return;
   e.respondWith(
     fetch(req)
       .then(res => {

@@ -5,224 +5,240 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Harcama Takip</title>
 <meta name="description" content="Proje bazlı gelir/gider takibi ve günlük notlar. Veriler cihazınızda saklanır.">
-<meta name="theme-color" content="#dfe2de" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111821" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1512" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<!--PWA-->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!--/PWA-->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Harcama">
 <style>
-  /* Şantiye defteri: beton zemin, kâğıt sayfalar, lacivert mürekkep, baret sarısı */
   :root {
-    --beton:#dfe2de; --kagit:#fbfbf7; --murekkep:#15233b; --soluk:#5b6678; --cizgi:#cdd2cc;
-    --sari:#f5b700; --sari-koyu:#d99e00; --gelir:#1b7a4b; --gider:#c2362b; --kenar:#e2857c;
-    --dar:"Roboto Condensed","sans-serif-condensed","Arial Narrow","Helvetica Neue Condensed",system-ui,sans-serif;
-    --govde:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --zemin:#f2f5f2; --kart:#ffffff; --yazi:#10241b; --soluk:#4d5f55; --cizgi:#d5ddd6; --ray:#dfe6e0;
+    --yesil:#0f6b44; --yesil-yazi:#ffffff; --kirmizi:#b3261e; --golge:rgba(15,107,68,.32);
+    --font:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --beton:#111821; --kagit:#1a2330; --murekkep:#e9edf1; --soluk:#9aa6b6; --cizgi:#2e3a4a; --gelir:#4cc38a; --gider:#ff7b6b; --kenar:#7d3b36; }
+    :root { --zemin:#0d1512; --kart:#16211c; --yazi:#e8efe9; --soluk:#9db0a5; --cizgi:#2a3a32; --ray:#2a3a32;
+            --yesil:#3fbf85; --yesil-yazi:#06281a; --kirmizi:#ff8a7a; --golge:rgba(0,0,0,.5); }
   }
   * { box-sizing:border-box; }
   html { -webkit-text-size-adjust:100%; }
-  body { margin:0; font-family:var(--govde); background:var(--beton); color:var(--murekkep); line-height:1.4;
-         padding:calc(18px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom)); }
-  main { max-width:620px; margin:0 auto; }
-  :focus-visible { outline:3px solid var(--sari); outline-offset:2px; }
+  body { margin:0; font-family:var(--font); background:var(--zemin); color:var(--yazi); line-height:1.4;
+         padding:calc(22px + env(safe-area-inset-top)) 14px calc(170px + env(safe-area-inset-bottom)); }
+  main { max-width:560px; margin:0 auto; }
   [hidden] { display:none !important; }
+  :focus-visible { outline:3px solid var(--yesil); outline-offset:2px; }
+  button { font:inherit; color:inherit; cursor:pointer; border:0; background:none; padding:0; -webkit-tap-highlight-color:transparent; text-align:inherit; }
+  h1, h2 { margin:0; }
+  .num { font-variant-numeric:tabular-nums; }
 
-  .ust { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
-  h1 { margin:0; font:800 1.7rem/1 var(--dar); letter-spacing:.01em; }
-  h2 { margin:0; font:700 1.2rem/1.2 var(--dar); }
+  /* Üst özet */
+  .ozet { padding:4px 4px 16px; }
+  .ozet small { display:block; font-weight:600; font-size:.95rem; color:var(--soluk); }
+  .ozet .buyuk { font-weight:800; font-size:clamp(2.1rem,10.5vw,2.8rem); line-height:1.1; letter-spacing:-.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .eksi { color:var(--kirmizi); }
+  .ust-satir { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; min-height:48px; }
+  .geri { display:inline-flex; align-items:center; gap:6px; min-height:48px; padding:0 14px 0 8px; margin-left:-8px; border-radius:14px; font-weight:700; }
+  .ikincil { min-height:44px; padding:0 14px; border:1.5px solid var(--cizgi); border-radius:14px; font-weight:700; font-size:.92rem; background:var(--kart); }
 
-  button { font:inherit; color:inherit; cursor:pointer; border:0; background:none; -webkit-tap-highlight-color:transparent; }
-  .btn { min-height:46px; padding:0 18px; border-radius:10px; font-weight:700; background:var(--sari); color:#15233b; }
-  .btn:active { background:var(--sari-koyu); }
-  .btn.ikincil { background:transparent; color:var(--murekkep); border:1.5px solid var(--cizgi); font-weight:600; }
-  .btn.tehlike { background:var(--gider); color:#fff; }
-  .btn.kucuk { min-height:38px; padding:0 12px; font-size:.9rem; }
+  /* Proje kartları */
+  .liste { display:flex; flex-direction:column; gap:12px; }
+  .kart { display:block; width:100%; background:var(--kart); border:1px solid var(--cizgi); border-radius:18px; padding:16px; }
+  button.kart:active { border-color:var(--yesil); }
+  .kart-bas { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .kart-bas b { font-weight:800; font-size:1.25rem; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kart > .tutar { font-weight:800; font-size:1.85rem; line-height:1.2; margin-top:4px; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ray { height:10px; background:var(--ray); border-radius:5px; margin-top:10px; overflow:hidden; }
+  .dolu { height:100%; background:var(--yesil); border-radius:5px; }
+  .dolu.asim { background:var(--kirmizi); }
+  .alt-bilgi { display:flex; justify-content:space-between; gap:10px; margin-top:8px; font-weight:600; font-size:.9rem; color:var(--soluk); }
+  .bos { color:var(--soluk); font-weight:600; font-size:.92rem; margin-top:8px; }
+  .yeni-proje { width:100%; min-height:54px; border:1.5px dashed var(--soluk); border-radius:18px; font-weight:700; text-align:center; }
 
-  /* Defter ayraçları gibi proje sekmeleri: seçili sekme sayfayla birleşir */
-  .sekmeler { display:flex; align-items:flex-end; gap:4px; overflow-x:auto; padding:0 2px; scrollbar-width:none; position:relative; z-index:1; }
-  .sekmeler::-webkit-scrollbar { display:none; }
-  .sekme { flex:none; height:40px; padding:0 15px; border-radius:10px 10px 0 0; font:600 1rem/1 var(--dar); color:var(--soluk);
-           background:color-mix(in srgb, var(--kagit) 45%, var(--beton)); border:1px solid var(--cizgi); border-bottom:0; }
-  .sekme.secili { height:46px; background:var(--kagit); color:var(--murekkep); font-weight:800; box-shadow:inset 0 4px 0 var(--sari); }
-  .sekme.yeni { background:transparent; border-style:dashed; }
-
-  .sayfa { background:var(--kagit); border:1px solid var(--cizgi); border-radius:6px; padding:18px 16px; margin-bottom:14px; }
-  .sayfa.ilk { border-top-left-radius:0; margin-top:-1px; }
-  .baslik { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
-  .baslik h2 { white-space:nowrap; }
-  .baslik.dar { margin-bottom:4px; min-height:38px; }
-
-  /* Bakiye: defterin dip toplamı */
-  .bakiye-ad { color:var(--soluk); font-size:.95rem; }
-  .bakiye { font:800 clamp(2.4rem,12vw,3.4rem)/1.05 var(--dar); font-variant-numeric:tabular-nums; letter-spacing:-.01em; margin:2px 0 14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .bakiye.eksi { color:var(--gider); }
-  .ikili { display:grid; grid-template-columns:1fr 1fr; border-top:2px solid var(--murekkep); }
-  .ikili > div { padding:10px 0 0; min-width:0; }
-  .ikili > div + div { padding-left:14px; border-left:1px solid var(--cizgi); }
-  .ikili small { display:block; color:var(--soluk); font-size:.9rem; }
-  .ikili b { font:700 1.3rem/1.2 var(--dar); font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .gelir { color:var(--gelir); } .gider { color:var(--gider); }
-  .oran { margin-top:14px; }
-  .oran .ray { height:8px; background:var(--cizgi); border-radius:4px; overflow:hidden; }
-  .oran .dolu { height:100%; background:var(--murekkep); }
-  .oran.asim .dolu { background:var(--gider); }
-  .oran p { margin:6px 0 0; font-size:.9rem; color:var(--soluk); }
-
-  /* Kayıt formu */
-  .tur { display:grid; grid-template-columns:1fr 1fr; border:1.5px solid var(--murekkep); border-radius:10px; overflow:hidden; margin-bottom:12px; }
-  .tur button { min-height:44px; font:700 1.05rem/1 var(--dar); }
-  .tur button[aria-pressed="true"] { background:var(--murekkep); color:var(--kagit); }
-  form.kayit { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  form.kayit .tam { grid-column:1 / -1; }
-  input, select, textarea { width:100%; min-width:0; min-height:46px; padding:10px 12px; border:1.5px solid var(--cizgi); border-radius:10px;
-           background:transparent; color:inherit; font:inherit; font-size:1rem; }
-  input:focus, select:focus, textarea:focus { border-color:var(--murekkep); outline:none; }
-  select option { color:#000; }
-  #amount { font:700 1.35rem/1 var(--dar); font-variant-numeric:tabular-nums; }
-  .cipler { display:flex; flex-wrap:wrap; gap:8px; }
-  .cip { min-height:40px; padding:0 14px; border-radius:20px; border:1.5px solid var(--cizgi); font-size:.95rem; }
-  .cip[aria-pressed="true"] { background:var(--murekkep); border-color:var(--murekkep); color:var(--kagit); font-weight:600; }
-
-  /* Günlük not: çizgili defter sayfası */
-  .gun { display:flex; align-items:center; gap:6px; flex:1 1 240px; }
-  .gun button { flex:none; }
-  .gun button { width:42px; min-height:42px; border:1.5px solid var(--cizgi); border-radius:10px; font-size:1.2rem; }
-  .gun input { flex:1; width:auto; min-height:42px; padding:6px 8px; }
-  .not + .not { margin-top:16px; }
-  .not label { display:block; font:700 1rem/1.3 var(--dar); margin-bottom:6px; }
-  .not textarea { display:block; resize:vertical; min-height:142px; border-radius:4px; padding:0 12px 0 46px; line-height:28px;
-    background-image:linear-gradient(90deg, transparent 34px, var(--kenar) 34px, var(--kenar) 35.5px, transparent 35.5px),
-                     repeating-linear-gradient(transparent 0 27px, var(--cizgi) 27px 28px);
-    background-attachment:local; }
-  .durum { font-size:.85rem; color:var(--gelir); min-height:1.2em; margin-top:4px; }
-  .gecmis { margin-top:10px; border-top:1px solid var(--cizgi); padding-top:10px; }
-  .gecmis summary { cursor:pointer; color:var(--soluk); min-height:32px; }
-  .gecmis button { display:block; width:100%; text-align:left; padding:10px 0; border-bottom:1px solid var(--cizgi); }
-  .gecmis button small { display:block; color:var(--soluk); }
-  .gecmis button span { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-  /* Kategori dökümü */
-  .kat { display:grid; grid-template-columns:1fr auto; gap:2px 10px; margin-top:12px; font-size:.97rem; }
-  .kat .tutar { font-variant-numeric:tabular-nums; font-weight:600; }
-  .kat .ray { grid-column:1 / -1; height:8px; background:var(--cizgi); border-radius:4px; overflow:hidden; }
-  .kat .dolu { height:100%; background:var(--murekkep); }
-  .kat small { color:var(--soluk); }
-
-  /* İşlem defteri */
-  .gun-basi { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-top:16px; padding-bottom:5px; border-bottom:2px solid var(--murekkep); font:700 1rem/1.2 var(--dar); }
-  .gun-basi:first-child { margin-top:0; }
-  .gun-basi span:last-child { font-variant-numeric:tabular-nums; color:var(--soluk); font-weight:600; }
-  .satir { display:grid; grid-template-columns:1fr auto 40px; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--cizgi); }
+  /* Proje ayrıntısı */
+  .ikili { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .ikili > div { background:var(--zemin); border-radius:12px; padding:10px 12px; min-width:0; }
+  .ikili small { display:block; color:var(--soluk); font-weight:600; font-size:.85rem; }
+  .ikili b { font-weight:800; font-size:1.1rem; white-space:nowrap; }
+  .bolum { font-weight:800; font-size:1.1rem; margin:20px 4px 10px; }
+  .gun-basi { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-weight:800; font-size:.95rem; padding:14px 0 6px; border-bottom:1.5px solid var(--yazi); }
+  .gun-basi:first-child { padding-top:0; }
+  .gun-basi span:last-child { color:var(--soluk); font-weight:700; }
+  .satir { display:grid; grid-template-columns:1fr auto 44px; align-items:center; gap:6px; min-height:56px; border-bottom:1px solid var(--cizgi); }
+  .satir:last-child { border-bottom:0; }
   .satir.yeni { animation:parla 1.2s ease-out; }
-  @keyframes parla { from { background:color-mix(in srgb, var(--sari) 45%, transparent); } to { background:transparent; } }
+  @keyframes parla { from { background:color-mix(in srgb, var(--yesil) 28%, transparent); } to { background:transparent; } }
   @media (prefers-reduced-motion: reduce) { .satir.yeni { animation:none; } }
   .satir .ne { min-width:0; }
-  .satir .ne b { display:block; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .satir .ne small { color:var(--soluk); }
-  .satir .etiket { display:inline-block; margin-right:6px; padding:0 6px; border:1px solid var(--cizgi); border-radius:4px; color:var(--murekkep); }
-  .satir .tutar { font:700 1.1rem/1 var(--dar); font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .satir .sil { width:40px; height:40px; color:var(--soluk); font-size:1.05rem; border-radius:8px; }
-  .bos { color:var(--soluk); padding:14px 0 4px; }
+  .satir .ne b { display:block; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .satir .ne small { color:var(--soluk); font-weight:600; }
+  .satir .tutar { font-weight:800; white-space:nowrap; }
+  .satir .gelir { color:var(--yesil); }
+  .sil { width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--soluk); border-radius:12px; }
 
-  dialog { border:1px solid var(--cizgi); border-radius:10px; background:var(--kagit); color:var(--murekkep); padding:20px; width:min(92vw,380px); }
-  dialog::backdrop { background:rgba(10,16,26,.55); }
-  dialog h2 { margin-bottom:12px; }
-  dialog p { color:var(--soluk); margin:0; }
-  .dugmeler { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap; }
-  .dugmeler .btn { padding:0 14px; }
+  /* Notlar */
+  .gun-sec { display:grid; grid-template-columns:52px 1fr 52px; gap:8px; margin-bottom:12px; }
+  .gun-sec button { height:52px; border:1.5px solid var(--cizgi); border-radius:14px; background:var(--kart); display:flex; align-items:center; justify-content:center; }
+  input, select, textarea { width:100%; min-width:0; min-height:52px; padding:12px 14px; border:1.5px solid var(--cizgi); border-radius:14px; background:var(--kart); color:inherit; font:inherit; font-size:1rem; font-weight:600; }
+  input:focus, select:focus, textarea:focus { border-color:var(--yesil); outline:none; }
+  select option { color:#000; }
+  .not label { display:block; font-weight:800; font-size:1.05rem; margin-bottom:8px; }
+  .not textarea { display:block; min-height:120px; resize:vertical; line-height:1.5; background:var(--zemin); font-weight:500; }
+  .durum { font-size:.85rem; font-weight:700; color:var(--yesil); min-height:1.3em; margin-top:4px; }
+  .gecmis-satir { display:block; width:100%; padding:12px 0; border-bottom:1px solid var(--cizgi); }
+  .gecmis-satir:last-child { border-bottom:0; }
+  .gecmis-satir small { display:block; color:var(--soluk); font-weight:700; }
+  .gecmis-satir span { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500; }
+
+  /* Dağılım */
+  .cipler { display:flex; flex-wrap:wrap; gap:8px; }
+  .cip { min-height:44px; padding:0 16px; border:1.5px solid var(--cizgi); border-radius:22px; background:var(--kart); font-weight:700; font-size:.95rem; }
+  .cip[aria-pressed="true"] { background:var(--yesil); border-color:var(--yesil); color:var(--yesil-yazi); }
+  .kat { display:grid; grid-template-columns:1fr auto; gap:0 10px; padding:10px 0; font-weight:700; }
+  .kat small { color:var(--soluk); font-weight:600; }
+  .kat .ray { grid-column:1 / -1; margin-top:6px; }
+
+  /* Artı düğmesi ve alt menü */
+  .arti { position:fixed; right:max(18px, calc(50% - 262px)); bottom:calc(92px + env(safe-area-inset-bottom)); width:68px; height:68px; border-radius:34px;
+          background:var(--yesil); color:var(--yesil-yazi); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px var(--golge); z-index:5; }
+  .arti:active { transform:scale(.96); }
+  .menu { position:fixed; left:0; right:0; bottom:0; z-index:4; background:var(--kart); border-top:1px solid var(--cizgi); padding:6px 8px calc(8px + env(safe-area-inset-bottom)); }
+  .menu div { max-width:560px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); }
+  .menu button { height:60px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-weight:700; font-size:.82rem; color:var(--soluk); border-radius:14px; }
+  .menu button[aria-current="page"] { color:var(--yesil); font-weight:800; }
+
+  /* Alttan açılan kayıt sayfası ve pencereler */
+  dialog { border:0; background:var(--kart); color:var(--yazi); padding:20px 16px calc(20px + env(safe-area-inset-bottom)); width:100%; max-width:560px; }
+  dialog::backdrop { background:rgba(8,18,13,.55); }
+  dialog.alt { margin:auto auto 0; border-radius:22px 22px 0 0; max-height:92dvh; overflow-y:auto; }
+  dialog.orta { border-radius:20px; width:min(92vw,400px); }
+  dialog h2 { font-weight:800; font-size:1.25rem; margin-bottom:14px; }
+  dialog p { color:var(--soluk); font-weight:600; margin:0; }
+  .tutamac { width:44px; height:5px; border-radius:3px; background:var(--cizgi); margin:-8px auto 14px; }
+  .tur { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:5px; background:var(--zemin); border-radius:16px; margin-bottom:12px; }
+  .tur button { min-height:46px; border-radius:12px; font-weight:800; text-align:center; color:var(--soluk); }
+  .tur button[aria-pressed="true"] { background:var(--kart); color:var(--yazi); box-shadow:0 1px 4px rgba(0,0,0,.14); }
+  form.kayit { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  form.kayit .tam { grid-column:1 / -1; }
+  #amount { font-weight:800; font-size:1.7rem; min-height:64px; -moz-appearance:textfield; appearance:textfield; }
+  #amount::-webkit-outer-spin-button, #amount::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .ana { min-height:60px; border-radius:16px; background:var(--yesil); color:var(--yesil-yazi); font-weight:800; font-size:1.1rem; text-align:center; padding:0 18px; }
+  .tehlike { min-height:52px; padding:0 16px; border-radius:14px; background:var(--kirmizi); color:#fff; font-weight:800; }
+  @media (prefers-color-scheme: dark) { .tehlike { color:#2b0a06; } }
+  .dugmeler { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:16px; }
+  .dugmeler .ikincil, .dugmeler .ana { min-height:52px; font-size:1rem; }
   .dugmeler .tehlike { margin-right:auto; }
 </style>
 </head>
 <body>
 <main>
-  <header class="ust">
-    <h1>Harcama Takip</h1>
-    <button id="install" class="btn ikincil kucuk" hidden>Telefona yükle</button>
-  </header>
-
-  <nav class="sekmeler" id="tabs" aria-label="Projeler"></nav>
-
-  <section class="sayfa ilk" aria-label="Özet">
-    <div class="baslik dar">
-      <span class="bakiye-ad" id="balLabel">Bakiye</span>
-      <button type="button" class="btn ikincil kucuk" id="editProj" hidden>Projeyi düzenle</button>
+  <!-- Projeler -->
+  <section id="v-home">
+    <div class="ozet">
+      <small>Tüm projelerin bakiyesi</small>
+      <div class="buyuk num" id="total">₺0,00</div>
     </div>
-    <div class="bakiye" id="bal">₺0,00</div>
-    <div class="ikili">
-      <div><small>Gelir</small><b id="inc" class="gelir">₺0,00</b></div>
-      <div><small>Gider</small><b id="exp" class="gider">₺0,00</b></div>
-    </div>
-    <div class="oran" id="ratio" hidden>
-      <div class="ray"><div class="dolu" id="ratioFill"></div></div>
-      <p id="ratioText"></p>
-    </div>
+    <div class="liste" id="cards"></div>
+    <button type="button" class="yeni-proje" id="newProj" style="margin-top:12px">Yeni proje ekle</button>
+    <button type="button" class="ikincil" id="install" style="width:100%;margin-top:12px;text-align:center" hidden>Uygulamayı telefona yükle</button>
   </section>
 
-  <section class="sayfa" aria-label="Yeni kayıt">
-    <div class="tur" role="group" aria-label="Kayıt türü">
-      <button type="button" id="turGider" aria-pressed="true">Gider</button>
-      <button type="button" id="turGelir" aria-pressed="false">Gelir</button>
+  <!-- Proje ayrıntısı -->
+  <section id="v-proj" hidden>
+    <div class="ust-satir">
+      <button type="button" class="geri" id="back"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Projeler</button>
+      <button type="button" class="ikincil" id="editProj">Düzenle</button>
     </div>
-    <form id="form" class="kayit">
-      <input id="desc" class="tam" placeholder="Ne için? Örn. çimento, usta yevmiyesi" aria-label="Açıklama" required>
-      <input id="amount" class="tam" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="Tutar (₺)" aria-label="Tutar" required>
-      <div class="cipler tam" id="cats" role="group" aria-label="Kategori"></div>
-      <select id="proj" aria-label="Proje"></select>
-      <input id="date" type="date" aria-label="Tarih" required>
-      <button class="btn tam" id="submit">Gider ekle</button>
-    </form>
-  </section>
-
-  <section class="sayfa" aria-label="Günlük not">
-    <div class="baslik">
-      <h2>Günlük not</h2>
-      <div class="gun">
-        <button type="button" id="prevDay" aria-label="Önceki gün">‹</button>
-        <input type="date" id="noteDate" aria-label="Not tarihi">
-        <button type="button" id="nextDay" aria-label="Sonraki gün">›</button>
+    <div class="kart">
+      <div class="kart-bas"><b id="pName"></b></div>
+      <div class="tutar num" id="pBal"></div>
+      <div class="ray" id="pRay"><div class="dolu" id="pFill"></div></div>
+      <div class="bos" id="pRatio"></div>
+      <div class="ikili">
+        <div><small>Gelir</small><b class="num" id="pInc"></b></div>
+        <div><small>Gider</small><b class="num" id="pExp"></b></div>
       </div>
     </div>
-    <div id="notes"></div>
-    <details class="gecmis" id="histBox">
-      <summary>Geçmiş notlar</summary>
-      <div id="hist"></div>
-    </details>
+    <h2 class="bolum">Bugünün notu</h2>
+    <div class="kart not" id="pNote"></div>
+    <h2 class="bolum">İşlemler</h2>
+    <div class="kart" id="rows"></div>
   </section>
 
-  <section class="sayfa" aria-label="Giderlerin dağılımı">
-    <h2>Giderler nereye gitti</h2>
-    <div id="bars"></div>
+  <!-- Notlar -->
+  <section id="v-notes" hidden>
+    <div class="ozet"><div class="buyuk" style="font-size:1.9rem">Günlük notlar</div></div>
+    <div class="gun-sec">
+      <button type="button" id="prevDay" aria-label="Önceki gün"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <input type="date" id="noteDate" aria-label="Not tarihi">
+      <button type="button" id="nextDay" aria-label="Sonraki gün"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="liste" id="notes"></div>
+    <h2 class="bolum" id="histTitle">Geçmiş notlar</h2>
+    <div class="kart" id="hist"></div>
   </section>
 
-  <section class="sayfa" aria-label="İşlemler">
-    <div class="baslik"><h2>İşlemler</h2></div>
-    <div id="rows"></div>
+  <!-- Dağılım -->
+  <section id="v-stats" hidden>
+    <div class="ozet">
+      <small>Toplam gider</small>
+      <div class="buyuk num" id="sTotal">₺0,00</div>
+    </div>
+    <div class="cipler" id="sFilter" role="group" aria-label="Proje seçimi" style="margin-bottom:12px"></div>
+    <div class="kart" id="bars"></div>
   </section>
 </main>
 
-<dialog id="projDlg">
+<button type="button" class="arti" id="fab" aria-label="Gider ya da gelir ekle"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<nav class="menu" aria-label="Ana menü"><div>
+  <button type="button" data-view="home"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v10H3z"/><path d="M9 20v-6h6v6"/></svg>Projeler</button>
+  <button type="button" data-view="notes"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Notlar</button>
+  <button type="button" data-view="stats"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Dağılım</button>
+</div></nav>
+
+<dialog id="addDlg" class="alt" aria-labelledby="addTitle">
+  <div class="tutamac"></div>
+  <h2 id="addTitle">Yeni kayıt</h2>
+  <div class="tur" role="group" aria-label="Kayıt türü">
+    <button type="button" id="turGider" aria-pressed="true">Gider</button>
+    <button type="button" id="turGelir" aria-pressed="false">Gelir</button>
+  </div>
+  <form id="form" class="kayit">
+    <input id="amount" class="tam num" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="Tutar (₺)" aria-label="Tutar" required>
+    <input id="desc" class="tam" placeholder="Ne için? Örn. çimento" aria-label="Açıklama" required>
+    <div class="cipler tam" id="cats" role="group" aria-label="Kategori"></div>
+    <select id="proj" aria-label="Proje"></select>
+    <input id="date" type="date" aria-label="Tarih" required>
+    <button type="button" class="ikincil" id="addCancel" style="min-height:60px;text-align:center">Vazgeç</button>
+    <button class="ana" id="submit">Gider ekle</button>
+  </form>
+</dialog>
+
+<dialog id="projDlg" class="orta" aria-labelledby="projTitle">
   <form method="dialog" id="projForm">
     <h2 id="projTitle">Yeni proje</h2>
     <input id="projName" placeholder="Örn. 1. İnşaat" maxlength="40" aria-label="Proje adı" required>
     <div class="dugmeler">
-      <button type="button" class="btn tehlike" id="projDel" hidden>Projeyi sil</button>
-      <button type="button" class="btn ikincil" id="projCancel">Vazgeç</button>
-      <button class="btn" id="projSave">Kaydet</button>
+      <button type="button" class="tehlike" id="projDel" hidden>Sil</button>
+      <button type="button" class="ikincil" id="projCancel">Vazgeç</button>
+      <button class="ana" id="projSave">Kaydet</button>
     </div>
   </form>
 </dialog>
 
-<dialog id="confirmDlg">
-  <h2>Proje silinsin mi?</h2>
+<dialog id="confirmDlg" class="orta" aria-labelledby="confirmTitle">
+  <h2 id="confirmTitle">Proje silinsin mi?</h2>
   <p id="confirmText"></p>
   <div class="dugmeler">
-    <button type="button" class="btn ikincil" id="confirmNo">Vazgeç</button>
-    <button type="button" class="btn tehlike" id="confirmYes">Projeyi sil</button>
+    <button type="button" class="ikincil" id="confirmNo">Vazgeç</button>
+    <button type="button" class="tehlike" id="confirmYes">Projeyi sil</button>
   </div>
 </dialog>
 
@@ -234,224 +250,283 @@
   const $ = id => document.getElementById(id);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const money = n => (n < 0 ? '−' : '') + '₺' + Math.abs(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const short = n => (n < 0 ? '−' : '') + '₺' + Math.abs(n).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
   const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
   const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
   const pad = n => String(n).padStart(2, '0');
   const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const fromYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d, 12); };
   const trDate = s => fromYmd(s).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+  const today = () => ymd(new Date());
+  const CHEVRON = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg>';
+  const CROSS = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
   let items = load(KEY, []);
   let projects = load(PKEY, null);
   let notes = load(NKEY, {});
-  let active = load(AKEY, 'all');
-  let kind = 'gider', cat = 'malzeme', lastAdded = null;
   if (!Array.isArray(items)) items = [];
   if (!Array.isArray(projects) || !projects.length) projects = [{ id: 'genel', name: 'Genel' }];
   if (!notes || typeof notes !== 'object') notes = {};
-
   // Eski kayıtları (proje alanı olmayan) ilk projeye bağla
   let migrated = false;
   items.forEach(i => { if (!projects.some(p => p.id === i.proj)) { i.proj = projects[0].id; migrated = true; } });
-  if (active !== 'all' && !projects.some(p => p.id === active)) active = 'all';
   store(PKEY, projects);
   if (migrated) store(KEY, items);
 
+  let view = 'home', cur = null, statsProj = 'all', kind = 'gider', cat = 'malzeme', lastAdded = null;
+  let lastProj = load(AKEY, null);
+  if (!projects.some(p => p.id === lastProj)) lastProj = projects[0].id;
+
   const saveItems = () => store(KEY, items);
   const projName = id => (projects.find(p => p.id === id) || {}).name || '';
-  const visible = () => active === 'all' ? projects : projects.filter(p => p.id === active);
+  const sums = list => {
+    const inc = list.filter(i => i.cat === 'gelir').reduce((s, i) => s + i.amount, 0);
+    const exp = list.filter(i => i.cat !== 'gelir').reduce((s, i) => s + i.amount, 0);
+    return { inc, exp, bal: inc - exp };
+  };
+  const setBar = (fill, s) => { fill.style.width = (s.inc > 0 ? Math.min(100, s.exp / s.inc * 100) : (s.exp > 0 ? 100 : 0)) + '%'; fill.classList.toggle('asim', s.exp > s.inc); };
 
-  function setActive(id) {
-    active = id; store(AKEY, active);
-    if (id !== 'all') $('proj').value = id;
+  function show(v, projId) {
+    view = v; cur = v === 'proj' ? projId : null;
+    ['home', 'proj', 'notes', 'stats'].forEach(n => $('v-' + n).hidden = n !== v);
+    document.querySelectorAll('.menu button').forEach(b => {
+      const on = b.dataset.view === v || (v === 'proj' && b.dataset.view === 'home');
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    $('fab').hidden = v === 'notes';
     render();
+    scrollTo(0, 0);
+  }
+  document.querySelectorAll('.menu button').forEach(b => b.onclick = () => show(b.dataset.view));
+  function openProject(id) {
+    lastProj = id; store(AKEY, id);
+    try { history.pushState({ p: id }, ''); } catch {}
+    show('proj', id);
+  }
+  $('back').onclick = () => { try { if (history.state && history.state.p) return history.back(); } catch {} show('home'); };
+  addEventListener('popstate', () => { if (view === 'proj') show('home'); });
+
+  function renderHome() {
+    $('total').textContent = money(sums(items).bal);
+    $('total').classList.toggle('eksi', sums(items).bal < 0);
+    const box = $('cards');
+    box.innerHTML = '';
+    projects.forEach(p => {
+      const list = items.filter(i => i.proj === p.id), s = sums(list);
+      const card = el('button', 'kart');
+      card.type = 'button'; card.dataset.id = p.id;
+      const head = el('div', 'kart-bas');
+      head.append(el('b', '', p.name));
+      head.insertAdjacentHTML('beforeend', CHEVRON);
+      card.append(head, el('div', 'tutar num' + (s.bal < 0 ? ' eksi' : ''), money(s.bal)));
+      if (list.length) {
+        const ray = el('div', 'ray'), fill = el('div', 'dolu');
+        setBar(fill, s); ray.append(fill);
+        const info = el('div', 'alt-bilgi num');
+        info.append(el('span', '', 'Gider ' + short(s.exp)), el('span', '', 'Gelir ' + short(s.inc)));
+        card.append(ray, info);
+      } else {
+        card.append(el('div', 'bos', 'Henüz kayıt yok. Dokunup ilk gideri ekleyin.'));
+      }
+      card.onclick = () => openProject(p.id);
+      box.append(card);
+    });
   }
 
+  function noteBox(p, day, onSaved) {
+    const wrap = el('div');
+    const key = p.id + '|' + day;
+    const ta = el('textarea');
+    ta.id = 'not-' + p.id;
+    ta.placeholder = 'Ne yapıldı? Gelen malzeme, çalışan usta, yarın yapılacaklar';
+    ta.setAttribute('aria-label', `${p.name}, ${trDate(day)} notu`);
+    ta.value = notes[key] || '';
+    const st = el('div', 'durum');
+    st.setAttribute('aria-live', 'polite');
+    let t;
+    ta.oninput = () => {
+      if (ta.value.trim()) notes[key] = ta.value; else delete notes[key];
+      store(NKEY, notes);
+      st.textContent = 'Kaydedildi';
+      clearTimeout(t);
+      t = setTimeout(() => { st.textContent = ''; if (onSaved) onSaved(); }, 1200);
+    };
+    wrap.append(ta, st);
+    return wrap;
+  }
+
+  function renderProj() {
+    const p = projects.find(x => x.id === cur);
+    if (!p) return show('home');
+    const list = items.filter(i => i.proj === cur), s = sums(list);
+    $('pName').textContent = p.name;
+    $('pBal').textContent = money(s.bal);
+    $('pBal').classList.toggle('eksi', s.bal < 0);
+    $('pInc').textContent = money(s.inc);
+    $('pExp').textContent = money(s.exp);
+    setBar($('pFill'), s);
+    $('pRay').hidden = !list.length;
+    $('pRatio').hidden = !(s.inc > 0);
+    if (s.inc > 0) $('pRatio').textContent = s.exp > s.inc ? `Gider, geliri ${money(s.exp - s.inc)} aştı.` : `Gelirin yüzde ${Math.round(s.exp / s.inc * 100)} kadarı harcandı.`;
+
+    $('pNote').innerHTML = '';
+    $('pNote').append(noteBox(p, today()));
+
+    const rows = $('rows');
+    rows.innerHTML = '';
+    const sorted = [...list].sort((a, b) => b.date - a.date || b.id - a.id);
+    let lastDay = null;
+    sorted.forEach(i => {
+      const day = ymd(new Date(i.date));
+      if (day !== lastDay) {
+        lastDay = day;
+        const dayExp = sorted.filter(x => ymd(new Date(x.date)) === day && x.cat !== 'gelir').reduce((t, x) => t + x.amount, 0);
+        const head = el('div', 'gun-basi');
+        head.append(el('span', '', trDate(day)), el('span', 'num', dayExp ? 'Gider ' + short(dayExp) : ''));
+        rows.append(head);
+      }
+      const isInc = i.cat === 'gelir';
+      const row = el('div', 'satir' + (i.id === lastAdded ? ' yeni' : ''));
+      const what = el('div', 'ne');
+      what.append(el('b', '', i.desc), el('small', '', catName(i.cat)));
+      const del = el('button', 'sil');
+      del.type = 'button'; del.innerHTML = CROSS; del.setAttribute('aria-label', i.desc + ' kaydını sil');
+      del.onclick = () => { items = items.filter(x => x.id !== i.id); saveItems(); render(); };
+      row.append(what, el('span', 'tutar num' + (isInc ? ' gelir' : ''), (isInc ? '+' : '−') + money(i.amount)), del);
+      rows.append(row);
+    });
+    lastAdded = null;
+    if (!list.length) rows.append(el('div', 'bos', 'Henüz kayıt yok. Sağ alttaki artıya dokunup ilk gideri ya da geliri ekleyin.'));
+  }
+
+  function renderHist() {
+    const list = Object.entries(notes)
+      .map(([k, text]) => { const n = k.lastIndexOf('|'); return { proj: k.slice(0, n), day: k.slice(n + 1), text }; })
+      .filter(n => projects.some(p => p.id === n.proj))
+      .sort((a, b) => b.day.localeCompare(a.day) || projName(a.proj).localeCompare(projName(b.proj), 'tr'));
+    const hist = $('hist');
+    hist.innerHTML = '';
+    $('histTitle').textContent = `Geçmiş notlar (${list.length})`;
+    if (!list.length) { hist.append(el('div', 'bos', 'Not yazdıkça burada birikir.')); return; }
+    list.slice(0, 60).forEach(n => {
+      const b = el('button', 'gecmis-satir');
+      b.type = 'button';
+      b.append(el('small', '', `${trDate(n.day)}, ${projName(n.proj)}`), el('span', '', n.text));
+      b.onclick = () => { $('noteDate').value = n.day; renderNotes(); scrollTo(0, 0); };
+      hist.append(b);
+    });
+  }
+
+  function renderNotes() {
+    const day = $('noteDate').value || today();
+    const box = $('notes');
+    box.innerHTML = '';
+    projects.forEach(p => {
+      const card = el('div', 'kart not');
+      const lab = el('label', '', p.name);
+      lab.htmlFor = 'not-' + p.id;
+      card.append(lab, noteBox(p, day, renderHist));
+      box.append(card);
+    });
+    renderHist();
+  }
+
+  function renderStats() {
+    const f = $('sFilter');
+    f.innerHTML = '';
+    const chip = (id, name) => {
+      const b = el('button', 'cip', name);
+      b.type = 'button'; b.setAttribute('aria-pressed', statsProj === id);
+      b.onclick = () => { statsProj = id; renderStats(); };
+      f.append(b);
+    };
+    chip('all', 'Tümü');
+    projects.forEach(p => chip(p.id, p.name));
+    const list = items.filter(i => i.cat !== 'gelir' && (statsProj === 'all' || i.proj === statsProj));
+    const exp = list.reduce((s, i) => s + i.amount, 0);
+    $('sTotal').textContent = money(exp);
+    const byCat = {};
+    list.forEach(i => byCat[i.cat] = (byCat[i.cat] || 0) + i.amount);
+    const bars = $('bars');
+    bars.innerHTML = '';
+    Object.entries(byCat).sort((a, b) => b[1] - a[1]).forEach(([c, sum]) => {
+      const row = el('div', 'kat');
+      const pct = Math.round(sum / exp * 100);
+      const name = el('span', '', catName(c) + ' ');
+      name.append(el('small', '', pct < 1 ? '%1’den az' : '%' + pct));
+      const ray = el('div', 'ray'), fill = el('div', 'dolu');
+      fill.style.width = (sum / exp * 100) + '%';
+      ray.append(fill);
+      row.append(name, el('span', 'num', money(sum)), ray);
+      bars.append(row);
+    });
+    if (!list.length) bars.append(el('div', 'bos', 'Gider ekledikçe hangi kaleme ne kadar gittiği burada görünür.'));
+  }
+
+  function render() {
+    if (view === 'home') renderHome();
+    else if (view === 'proj') renderProj();
+    else if (view === 'notes') renderNotes();
+    else renderStats();
+  }
+
+  // Kayıt ekleme
   function setKind(k) {
     kind = k;
     $('turGider').setAttribute('aria-pressed', k === 'gider');
     $('turGelir').setAttribute('aria-pressed', k === 'gelir');
     $('cats').hidden = k === 'gelir';
     $('submit').textContent = k === 'gelir' ? 'Gelir ekle' : 'Gider ekle';
-    $('desc').placeholder = k === 'gelir' ? 'Nereden? Örn. hakediş, avans' : 'Ne için? Örn. çimento, usta yevmiyesi';
+    $('desc').placeholder = k === 'gelir' ? 'Nereden? Örn. hakediş, avans' : 'Ne için? Örn. çimento';
   }
   $('turGider').onclick = () => setKind('gider');
   $('turGelir').onclick = () => setKind('gelir');
-
   function renderCats() {
     const box = $('cats');
     box.innerHTML = '';
     CATS.forEach(([id, name]) => {
       const b = el('button', 'cip', name);
-      b.type = 'button'; b.dataset.cat = id;
+      b.type = 'button';
       b.setAttribute('aria-pressed', id === cat);
       b.onclick = () => { cat = id; renderCats(); };
       box.append(b);
     });
   }
-
-  function renderTabs() {
-    const tabs = $('tabs');
-    const left = tabs.scrollLeft;
-    tabs.innerHTML = '';
-    const mk = (label, cls, fn) => { const b = el('button', 'sekme ' + cls, label); b.type = 'button'; b.onclick = fn; tabs.append(b); };
-    mk('Tümü', active === 'all' ? 'secili' : '', () => setActive('all'));
-    projects.forEach(p => mk(p.name, active === p.id ? 'secili' : '', () => setActive(p.id)));
-    mk('+ Proje', 'yeni', () => openProj(null));
-    tabs.scrollLeft = left;
-    const on = tabs.querySelector('.secili');
-    if (on) {
-      if (on.offsetLeft < tabs.scrollLeft) tabs.scrollLeft = on.offsetLeft - 8;
-      else if (on.offsetLeft + on.offsetWidth > tabs.scrollLeft + tabs.clientWidth) tabs.scrollLeft = on.offsetLeft + on.offsetWidth - tabs.clientWidth + 8;
-    }
-
-    const sel = $('proj'), cur = sel.value;
+  $('fab').onclick = () => {
+    const sel = $('proj');
     sel.innerHTML = '';
     projects.forEach(p => { const o = el('option', '', p.name); o.value = p.id; sel.append(o); });
-    sel.value = active !== 'all' ? active : (projects.some(p => p.id === cur) ? cur : projects[0].id);
-    $('editProj').hidden = active === 'all';
-    $('balLabel').textContent = active === 'all' ? 'Tüm projelerin bakiyesi' : projName(active) + ' bakiyesi';
-  }
-
-  function renderNotes() {
-    const day = $('noteDate').value;
-    const box = $('notes');
-    box.innerHTML = '';
-    visible().forEach(p => {
-      const wrap = el('div', 'not');
-      const key = p.id + '|' + day;
-      const lab = el('label', '', `${p.name}, ${trDate(day)}`);
-      const ta = el('textarea');
-      ta.id = 'not-' + p.id; lab.htmlFor = ta.id;
-      ta.placeholder = 'Bugün ne yapıldı? Gelen malzeme, çalışan usta, yarın yapılacaklar';
-      ta.value = notes[key] || '';
-      const st = el('div', 'durum');
-      st.setAttribute('aria-live', 'polite');
-      let t;
-      ta.oninput = () => {
-        const v = ta.value;
-        if (v.trim()) notes[key] = v; else delete notes[key];
-        store(NKEY, notes);
-        st.textContent = 'Kaydedildi';
-        clearTimeout(t);
-        t = setTimeout(() => { st.textContent = ''; renderHist(); }, 1200);
-      };
-      wrap.append(lab, ta, st);
-      box.append(wrap);
-    });
-    renderHist();
-  }
-
-  function renderHist() {
-    const ids = new Set(visible().map(p => p.id));
-    const list = Object.entries(notes)
-      .map(([k, text]) => { const n = k.lastIndexOf('|'); return { proj: k.slice(0, n), day: k.slice(n + 1), text }; })
-      .filter(n => ids.has(n.proj))
-      .sort((a, b) => b.day.localeCompare(a.day) || projName(a.proj).localeCompare(projName(b.proj), 'tr'));
-    const hist = $('hist');
-    hist.innerHTML = '';
-    $('histBox').querySelector('summary').textContent = `Geçmiş notlar (${list.length})`;
-    if (!list.length) { hist.append(el('div', 'bos', 'Not yazdıkça burada birikir.')); return; }
-    list.slice(0, 60).forEach(n => {
-      const b = el('button');
-      b.type = 'button';
-      b.append(el('small', '', `${trDate(n.day)}, ${projName(n.proj)}`), el('span', '', n.text));
-      b.onclick = () => { $('noteDate').value = n.day; renderNotes(); $('noteDate').scrollIntoView({ block: 'center' }); };
-      hist.append(b);
-    });
-  }
-
-  function render() {
-    renderTabs();
-    const shown = active === 'all' ? items : items.filter(i => i.proj === active);
-    const inc = shown.filter(i => i.cat === 'gelir').reduce((s, i) => s + i.amount, 0);
-    const exp = shown.filter(i => i.cat !== 'gelir').reduce((s, i) => s + i.amount, 0);
-    $('bal').textContent = money(inc - exp);
-    $('bal').classList.toggle('eksi', inc - exp < 0);
-    $('inc').textContent = money(inc);
-    $('exp').textContent = money(exp);
-
-    const ratio = $('ratio');
-    ratio.hidden = !(inc > 0);
-    if (inc > 0) {
-      ratio.classList.toggle('asim', exp > inc);
-      $('ratioFill').style.width = Math.min(100, exp / inc * 100) + '%';
-      $('ratioText').textContent = exp > inc
-        ? `Gider, geliri ${money(exp - inc)} aştı.`
-        : `Gelirin yüzde ${Math.round(exp / inc * 100)} kadarı harcandı.`;
-    }
-
-    const byCat = {};
-    shown.filter(i => i.cat !== 'gelir').forEach(i => byCat[i.cat] = (byCat[i.cat] || 0) + i.amount);
-    const bars = $('bars');
-    bars.innerHTML = '';
-    Object.entries(byCat).sort((a, b) => b[1] - a[1]).forEach(([c, sum]) => {
-      const row = el('div', 'kat');
-      const name = el('span', '', catName(c) + ' ');
-      const pct = Math.round(sum / exp * 100);
-      name.append(el('small', '', pct < 1 ? '%1’den az' : '%' + pct));
-      const track = el('div', 'ray'), fill = el('div', 'dolu');
-      fill.style.width = (sum / exp * 100) + '%';
-      track.append(fill);
-      row.append(name, el('span', 'tutar', money(sum)), track);
-      bars.append(row);
-    });
-    if (!Object.keys(byCat).length) bars.append(el('div', 'bos', 'İlk gideri ekleyince dağılım burada görünür.'));
-
-    const rows = $('rows');
-    rows.innerHTML = '';
-    const sorted = [...shown].sort((a, b) => b.date - a.date || b.id - a.id);
-    let lastDay = null;
-    sorted.forEach(i => {
-      const day = ymd(new Date(i.date));
-      if (day !== lastDay) {
-        lastDay = day;
-        const dayExp = sorted.filter(x => ymd(new Date(x.date)) === day && x.cat !== 'gelir').reduce((s, x) => s + x.amount, 0);
-        const head = el('div', 'gun-basi');
-        head.append(el('span', '', trDate(day)), el('span', '', dayExp ? 'Gider ' + money(dayExp) : ''));
-        rows.append(head);
-      }
-      const isInc = i.cat === 'gelir';
-      const row = el('div', 'satir' + (i.id === lastAdded ? ' yeni' : ''));
-      const what = el('div', 'ne');
-      const meta = el('small');
-      if (active === 'all' && projects.length > 1) meta.append(el('span', 'etiket', projName(i.proj)));
-      meta.append(catName(i.cat));
-      what.append(el('b', '', i.desc), meta);
-      const del = el('button', 'sil', '✕');
-      del.type = 'button'; del.title = 'Sil'; del.setAttribute('aria-label', i.desc + ' kaydını sil');
-      del.onclick = () => { items = items.filter(x => x.id !== i.id); saveItems(); render(); };
-      row.append(what, el('span', 'tutar ' + (isInc ? 'gelir' : 'gider'), (isInc ? '+' : '−') + money(i.amount)), del);
-      rows.append(row);
-    });
-    lastAdded = null;
-    if (!shown.length) rows.append(el('div', 'bos', 'Henüz kayıt yok. Yukarıdan ilk gideri ya da geliri ekleyin.'));
-
-    renderNotes();
-  }
-
+    sel.value = cur || (statsProj !== 'all' && view === 'stats' ? statsProj : lastProj);
+    if (!sel.value) sel.value = projects[0].id;
+    $('date').value = today();
+    $('amount').value = ''; $('desc').value = '';
+    $('addDlg').showModal();
+    $('amount').focus();
+  };
+  $('addCancel').onclick = () => $('addDlg').close();
+  $('addDlg').onclick = e => { if (e.target === $('addDlg')) $('addDlg').close(); };
   $('form').onsubmit = e => {
     e.preventDefault();
     const amount = parseFloat($('amount').value);
     if (!(amount > 0)) return;
-    const day = $('date').value || ymd(new Date());
     const id = Date.now();
-    items.push({ id, desc: $('desc').value.trim(), amount, cat: kind === 'gelir' ? 'gelir' : cat, proj: $('proj').value, date: fromYmd(day).getTime() });
-    lastAdded = id;
+    const proj = $('proj').value;
+    items.push({ id, desc: $('desc').value.trim(), amount, cat: kind === 'gelir' ? 'gelir' : cat, proj, date: fromYmd($('date').value || today()).getTime() });
+    lastAdded = id; lastProj = proj; store(AKEY, proj);
     saveItems();
-    $('desc').value = ''; $('amount').value = '';
+    $('addDlg').close();
     render();
   };
 
-  // Günlük not tarihi
-  const shiftDay = n => { const d = fromYmd($('noteDate').value); d.setDate(d.getDate() + n); $('noteDate').value = ymd(d); renderNotes(); };
+  // Not tarihi
+  const shiftDay = n => { const d = fromYmd($('noteDate').value || today()); d.setDate(d.getDate() + n); $('noteDate').value = ymd(d); renderNotes(); };
   $('prevDay').onclick = () => shiftDay(-1);
   $('nextDay').onclick = () => shiftDay(1);
-  $('noteDate').onchange = () => { if (!$('noteDate').value) $('noteDate').value = ymd(new Date()); renderNotes(); };
+  $('noteDate').onchange = () => { if (!$('noteDate').value) $('noteDate').value = today(); renderNotes(); };
 
   // Proje ekleme / düzenleme / silme
   let editing = null;
-  function openProj(id) {
+  function openProjDlg(id) {
     editing = id;
     $('projTitle').textContent = id ? 'Projeyi düzenle' : 'Yeni proje';
     $('projName').value = id ? projName(id) : '';
@@ -459,19 +534,15 @@
     $('projDlg').showModal();
     $('projName').focus();
   }
-  $('editProj').onclick = () => openProj(active);
+  $('newProj').onclick = () => openProjDlg(null);
+  $('editProj').onclick = () => openProjDlg(cur);
   $('projCancel').onclick = () => $('projDlg').close();
   $('projForm').onsubmit = e => {
     e.preventDefault();
     const name = $('projName').value.trim();
     if (!name) return;
-    if (editing) {
-      projects.find(p => p.id === editing).name = name;
-    } else {
-      const id = 'p' + Date.now();
-      projects.push({ id, name });
-      active = id; store(AKEY, active);
-    }
+    if (editing) projects.find(p => p.id === editing).name = name;
+    else projects.push({ id: 'p' + Date.now(), name });
     store(PKEY, projects);
     $('projDlg').close();
     render();
@@ -488,9 +559,11 @@
     items = items.filter(i => i.proj !== editing);
     Object.keys(notes).forEach(k => { if (k.startsWith(editing + '|')) delete notes[k]; });
     projects = projects.filter(p => p.id !== editing);
-    saveItems(); store(NKEY, notes); store(PKEY, projects);
+    if (lastProj === editing) lastProj = projects[0].id;
+    if (statsProj === editing) statsProj = 'all';
+    saveItems(); store(NKEY, notes); store(PKEY, projects); store(AKEY, lastProj);
     $('confirmDlg').close();
-    setActive('all');
+    show('home');
   };
 
   // Telefona kurulum (PWA)
@@ -498,12 +571,14 @@
   addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('install').hidden = false; });
   $('install').onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('install').hidden = true; };
   addEventListener('appinstalled', () => { $('install').hidden = true; });
+  /*PWA*/
   if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  /*/PWA*/
 
-  $('date').value = $('noteDate').value = ymd(new Date());
+  $('noteDate').value = today();
   renderCats();
-  render();
+  show('home');
 </script>
 </body>
 </html>
