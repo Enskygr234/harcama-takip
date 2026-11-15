@@ -100,6 +100,13 @@
   .cipler { display:flex; flex-wrap:wrap; gap:8px; }
   .cip { min-height:44px; padding:0 16px; border:1.5px solid var(--cizgi); border-radius:22px; background:var(--kart); font-weight:700; font-size:.95rem; }
   .cip[aria-pressed="true"] { background:var(--yesil); border-color:var(--yesil); color:var(--yesil-yazi); }
+  .cip.ekle { border-style:dashed; border-color:var(--soluk); background:transparent; }
+  .secenek { display:block; width:100%; min-height:56px; margin-top:8px; padding:0 16px; border:1.5px solid var(--cizgi); border-radius:16px; background:var(--kart); font-weight:800; font-size:1.05rem; }
+  .secenek[aria-pressed="true"] { border-color:var(--yesil); color:var(--yesil); box-shadow:inset 0 0 0 1.5px var(--yesil); }
+  .kat-satir { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:52px; border-bottom:1px solid var(--cizgi); font-weight:700; }
+  .ekle-satir { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:12px; }
+  .uyari { color:var(--kirmizi); font-weight:700; font-size:.9rem; min-height:1.3em; margin-top:6px; }
+  dialog h3 { font-weight:800; font-size:1.05rem; margin:20px 0 4px; }
   .kat { display:grid; grid-template-columns:1fr auto; gap:0 10px; padding:10px 0; font-weight:700; }
   .kat small { color:var(--soluk); font-weight:600; }
   .kat .ray { grid-column:1 / -1; margin-top:6px; }
@@ -148,6 +155,7 @@
     </div>
     <div class="liste" id="cards"></div>
     <button type="button" class="yeni-proje" id="newProj" style="margin-top:12px">Yeni proje ekle</button>
+    <button type="button" class="ikincil" id="openSet" style="width:100%;min-height:54px;margin-top:12px;text-align:center">Meslek ve kategoriler</button>
     <button type="button" class="ikincil" id="install" style="width:100%;margin-top:12px;text-align:center" hidden>Uygulamayı telefona yükle</button>
   </section>
 
@@ -235,6 +243,40 @@
   </form>
 </dialog>
 
+<dialog id="meslekDlg" class="orta" aria-labelledby="meslekTitle">
+  <h2 id="meslekTitle" style="margin-bottom:6px">Ne iş yapıyorsunuz?</h2>
+  <p>Kategoriler ve örnekler buna göre hazırlanır. Sonradan değiştirebilirsiniz.</p>
+  <div id="meslekList" style="margin-top:8px"></div>
+</dialog>
+
+<dialog id="setDlg" class="alt" aria-labelledby="setTitle">
+  <div class="tutamac"></div>
+  <h2 id="setTitle" style="margin-bottom:0">Meslek ve kategoriler</h2>
+  <h3>Mesleğiniz</h3>
+  <p>Meslek değişince kategori listesi o mesleğe göre yenilenir. Eski kayıtlarınız değişmez.</p>
+  <div id="setMeslek"></div>
+  <h3>Gider kategorileri</h3>
+  <div id="setCats"></div>
+  <form class="ekle-satir" id="setAdd">
+    <input id="setNew" maxlength="24" placeholder="Yeni kategori adı" aria-label="Yeni kategori adı">
+    <button class="ana" style="min-height:52px;font-size:1rem">Ekle</button>
+  </form>
+  <div class="uyari" id="setWarn" aria-live="polite"></div>
+  <div class="dugmeler"><button type="button" class="ikincil" id="setClose" style="min-height:52px">Kapat</button></div>
+</dialog>
+
+<dialog id="katDlg" class="orta" aria-labelledby="katTitle">
+  <form method="dialog" id="katForm">
+    <h2 id="katTitle">Yeni kategori</h2>
+    <input id="katName" maxlength="24" placeholder="Örn. Kablo" aria-label="Kategori adı" required>
+    <div class="uyari" id="katWarn" aria-live="polite"></div>
+    <div class="dugmeler" style="margin-top:6px">
+      <button type="button" class="ikincil" id="katCancel">Vazgeç</button>
+      <button class="ana">Ekle</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="confirmDlg" class="orta" aria-labelledby="confirmTitle">
   <h2 id="confirmTitle">Proje silinsin mi?</h2>
   <p id="confirmText"></p>
@@ -246,9 +288,18 @@
 
 <script>
   const KEY = 'harcamalar', PKEY = 'ht_projeler', NKEY = 'ht_notlar', AKEY = 'ht_aktif';
-  const CATS = [['malzeme', 'Malzeme'], ['işçilik', 'İşçilik'], ['nakliye', 'Nakliye'], ['market', 'Market'], ['fatura', 'Fatura'],
-                ['ulaşım', 'Ulaşım'], ['eğlence', 'Eğlence'], ['sağlık', 'Sağlık'], ['diğer', 'Diğer']];
-  const catName = c => c === 'gelir' ? 'Gelir' : ((CATS.find(x => x[0] === c) || [])[1] || c);
+  const MKEY = 'ht_meslek', CKEY = 'ht_kategoriler';
+  // İlk sürümün kategorileri küçük harfli anahtarlarla saklanıyor; yenileri doğrudan adıyla saklanır
+  const LEGACY = { 'malzeme': 'Malzeme', 'işçilik': 'İşçilik', 'nakliye': 'Nakliye', 'market': 'Market', 'fatura': 'Fatura',
+                   'ulaşım': 'Ulaşım', 'eğlence': 'Eğlence', 'sağlık': 'Sağlık', 'diğer': 'Diğer' };
+  const MESLEK = [
+    { id: 'insaat', ad: 'İnşaat', kat: ['malzeme', 'işçilik', 'nakliye', 'Kiralama', 'Yemek', 'fatura', 'diğer'], proje: '1. İnşaat', gider: 'çimento, usta yevmiyesi', gelir: 'hakediş, avans' },
+    { id: 'elektrik', ad: 'Elektrik', kat: ['Kablo', 'Pano ve sigorta', 'Priz ve armatür', 'işçilik', 'Yol ve yakıt', 'Alet', 'diğer'], proje: 'Ahmet Bey daire tesisatı', gider: 'kablo, sigorta', gelir: 'kapora, iş bedeli' },
+    { id: 'tesisat', ad: 'Su tesisatı', kat: ['Boru ve ek parça', 'Batarya ve vitrifiye', 'Kombi ve petek', 'işçilik', 'Yol ve yakıt', 'Alet', 'diğer'], proje: 'Ayşe Hanım banyo', gider: 'boru, batarya', gelir: 'kapora, iş bedeli' },
+    { id: 'boya', ad: 'Boya ve badana', kat: ['Boya', 'Alçı ve macun', 'Fırça ve rulo', 'işçilik', 'Yol ve yakıt', 'diğer'], proje: 'Yılmaz Apartmanı dış cephe', gider: 'boya, macun', gelir: 'kapora, iş bedeli' },
+    { id: 'diger', ad: 'Başka bir iş', kat: ['malzeme', 'işçilik', 'nakliye', 'Yol ve yakıt', 'fatura', 'diğer'], proje: 'Mutfak tadilatı', gider: 'malzeme, yevmiye', gelir: 'kapora, iş bedeli' },
+  ];
+  const catName = c => c === 'gelir' ? 'Gelir' : (LEGACY[c] || c);
   const $ = id => document.getElementById(id);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const money = n => (n < 0 ? '−' : '') + '₺' + Math.abs(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -275,7 +326,16 @@
   store(PKEY, projects);
   if (migrated) store(KEY, items);
 
-  let view = 'home', cur = null, statsProj = 'all', kind = 'gider', cat = 'malzeme', lastAdded = null;
+  // Meslek ve kategoriler. Daha önce kayıt girmiş kullanıcıda eski kategoriler korunur, meslek sorulmaz.
+  let meslek = load(MKEY, null);
+  let cats = load(CKEY, null);
+  if (!Array.isArray(cats) || !cats.length) cats = null;
+  const firstRun = !meslek && !cats && !items.length;
+  if (!cats) { cats = firstRun ? MESLEK[0].kat.slice() : Object.keys(LEGACY); if (!firstRun) store(CKEY, cats); }
+  const ms = () => MESLEK.find(m => m.id === meslek) || MESLEK[0];
+  const sameName = (a, b) => a.toLocaleLowerCase('tr') === b.toLocaleLowerCase('tr');
+
+  let view = 'home', cur = null, statsProj = 'all', kind = 'gider', cat = cats[0], lastAdded = null;
   let lastProj = load(AKEY, null);
   if (!projects.some(p => p.id === lastProj)) lastProj = projects[0].id;
 
@@ -479,21 +539,89 @@
     $('turGelir').setAttribute('aria-pressed', k === 'gelir');
     $('cats').hidden = k === 'gelir';
     $('submit').textContent = k === 'gelir' ? 'Gelir ekle' : 'Gider ekle';
-    $('desc').placeholder = k === 'gelir' ? 'Nereden? Örn. hakediş, avans' : 'Ne için? Örn. çimento';
+    $('desc').placeholder = k === 'gelir' ? 'Nereden? Örn. ' + ms().gelir : 'Ne için? Örn. ' + ms().gider;
+    $('projName').placeholder = 'Örn. ' + ms().proje;
   }
   $('turGider').onclick = () => setKind('gider');
   $('turGelir').onclick = () => setKind('gelir');
   function renderCats() {
     const box = $('cats');
     box.innerHTML = '';
-    CATS.forEach(([id, name]) => {
-      const b = el('button', 'cip', name);
+    if (!cats.includes(cat)) cat = cats[0];
+    cats.forEach(id => {
+      const b = el('button', 'cip', catName(id));
       b.type = 'button';
       b.setAttribute('aria-pressed', id === cat);
       b.onclick = () => { cat = id; renderCats(); };
       box.append(b);
     });
+    const add = el('button', 'cip ekle', '+ Kategori');
+    add.type = 'button';
+    add.onclick = () => { $('katName').value = ''; $('katWarn').textContent = ''; $('katDlg').showModal(); $('katName').focus(); };
+    box.append(add);
   }
+
+  // Kategori ekleme / silme, meslek seçimi
+  function addCat(name) {
+    name = name.trim().replace(/\s+/g, ' ');
+    if (!name) return 'Bir ad yazın.';
+    if (sameName(name, 'gelir') || cats.some(c => sameName(catName(c), name))) return 'Bu adda bir kategori zaten var.';
+    const legacy = Object.keys(LEGACY).find(k => sameName(LEGACY[k], name));
+    cats.push(legacy || name);
+    store(CKEY, cats);
+    return '';
+  }
+  $('katCancel').onclick = () => $('katDlg').close();
+  $('katForm').onsubmit = e => {
+    e.preventDefault();
+    const err = addCat($('katName').value);
+    if (err) { $('katWarn').textContent = err; return; }
+    cat = cats[cats.length - 1];
+    $('katDlg').close();
+    renderCats();
+  };
+  function pickMeslek(id) {
+    meslek = id;
+    cats = ms().kat.slice();
+    cat = cats[0];
+    store(MKEY, meslek); store(CKEY, cats);
+    setKind(kind); renderCats();
+  }
+  function meslekButtons(box, onPick) {
+    box.innerHTML = '';
+    MESLEK.forEach(m => {
+      const b = el('button', 'secenek', m.ad);
+      b.type = 'button'; b.dataset.id = m.id;
+      b.setAttribute('aria-pressed', m.id === meslek);
+      b.onclick = () => { pickMeslek(m.id); onPick(); };
+      box.append(b);
+    });
+  }
+  function renderSet() {
+    meslekButtons($('setMeslek'), renderSet);
+    const box = $('setCats');
+    box.innerHTML = '';
+    cats.forEach(id => {
+      const row = el('div', 'kat-satir');
+      row.append(el('span', '', catName(id)));
+      const del = el('button', 'sil');
+      del.type = 'button'; del.innerHTML = CROSS; del.setAttribute('aria-label', catName(id) + ' kategorisini kaldır');
+      del.disabled = cats.length < 2;
+      del.onclick = () => { cats = cats.filter(c => c !== id); store(CKEY, cats); renderCats(); renderSet(); };
+      row.append(del);
+      box.append(row);
+    });
+  }
+  $('openSet').onclick = () => { $('setNew').value = ''; $('setWarn').textContent = ''; renderSet(); $('setDlg').showModal(); };
+  $('setClose').onclick = () => $('setDlg').close();
+  $('setDlg').onclick = e => { if (e.target === $('setDlg')) $('setDlg').close(); };
+  $('setAdd').onsubmit = e => {
+    e.preventDefault();
+    const err = addCat($('setNew').value);
+    $('setWarn').textContent = err;
+    if (!err) { $('setNew').value = ''; renderCats(); renderSet(); }
+  };
+  $('meslekDlg').addEventListener('cancel', e => e.preventDefault());
   $('fab').onclick = () => {
     const sel = $('proj');
     sel.innerHTML = '';
@@ -579,8 +707,10 @@
   /*/PWA*/
 
   $('noteDate').value = today();
+  setKind('gider');
   renderCats();
   show('home');
+  if (firstRun) { meslekButtons($('meslekList'), () => $('meslekDlg').close()); $('meslekDlg').showModal(); }
 </script>
 </body>
 </html>

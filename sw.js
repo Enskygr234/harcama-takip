@@ -1,5 +1,5 @@
 // Harcama Takip — çevrimdışı çalışma için servis çalışanı
-const CACHE = 'harcama-takip-v4';
+const CACHE = 'harcama-takip-v5';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
