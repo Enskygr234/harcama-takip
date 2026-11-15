@@ -2,25 +2,58 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Harcama Takip</title>
+<meta name="description" content="Proje bazlı gelir/gider takibi ve günlük notlar. Veriler cihazınızda saklanır.">
+<meta name="theme-color" content="#2e90fa">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Harcama">
 <style>
   :root { --bg:#f3f6fb; --card:#fff; --text:#16202e; --muted:#667085; --line:#e4e7ec; --green:#12b76a; --red:#f04438; --accent:#2e90fa; }
   @media (prefers-color-scheme: dark) { :root { --bg:#0e131b; --card:#18202c; --text:#e6e9ef; --muted:#98a2b3; --line:#2a3443; } }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); padding:32px 16px; }
+  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text);
+         padding:calc(20px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom)); }
   main { max-width:640px; margin:0 auto; }
-  h1 { margin:0 0 16px; }
-  .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .card { background:var(--card); border-radius:12px; padding:14px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  h1 { margin:0; font-size:1.5rem; }
+  .tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:none; padding:8px 14px; border-radius:999px; background:var(--card); color:var(--text); border:1px solid var(--line); font-size:.92rem; }
+  .tab.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .tab.add { background:transparent; border-style:dashed; color:var(--muted); }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .cards .card:first-child { grid-column:1 / -1; }
+  .card { background:var(--card); border-radius:12px; padding:14px; min-width:0; }
   .card small { color:var(--muted); }
-  .card div { font-size:1.3rem; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; }
+  .card div { font-size:1.3rem; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .inc { color:var(--green); } .exp { color:var(--red); }
-  form { background:var(--card); border-radius:12px; padding:14px; margin:14px 0; display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:8px; }
-  input, select { padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; font-size:.95rem; min-width:0; }
+  form.add { background:var(--card); border-radius:12px; padding:14px; margin:14px 0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  form.add #desc, form.add button { grid-column:1 / -1; }
+  input, select, textarea { padding:10px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; font:inherit; font-size:1rem; min-width:0; width:100%; }
   select option { color:#000; }
-  button { padding:9px 14px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  textarea { resize:vertical; min-height:84px; display:block; }
+  button { padding:10px 14px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; font:inherit; font-size:.95rem; }
+  button.ghost { background:transparent; color:var(--muted); border:1px solid var(--line); }
+  button.danger { background:var(--red); }
   .panel { background:var(--card); border-radius:12px; padding:14px; margin-bottom:14px; }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .panel-head strong { white-space:nowrap; }
+  .daynav { display:flex; align-items:center; gap:6px; }
+  .daynav button { padding:8px 12px; }
+  .daynav input { width:auto; padding:8px; }
+  .note { margin-top:10px; }
+  .note label { display:block; font-size:.85rem; color:var(--muted); margin-bottom:4px; }
+  .saved { font-size:.8rem; color:var(--muted); min-height:1.1em; margin-top:4px; }
+  .hist { margin-top:12px; border-top:1px solid var(--line); padding-top:8px; }
+  .hist summary { cursor:pointer; color:var(--muted); font-size:.9rem; }
+  .hist button { display:block; width:100%; text-align:left; background:transparent; color:inherit; padding:8px 0; border-radius:0; border-bottom:1px solid var(--line); }
+  .hist button small { color:var(--muted); display:block; margin-bottom:2px; }
+  .hist button span { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .bar { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:.9rem; }
   .bar span:first-child { width:90px; color:var(--muted); }
   .bar .track { flex:1; height:10px; background:var(--line); border-radius:5px; overflow:hidden; }
@@ -28,60 +61,222 @@
   table { width:100%; border-collapse:collapse; }
   td { padding:8px 4px; border-bottom:1px solid var(--line); font-size:.95rem; }
   td.amt { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  td .x { background:transparent; color:var(--muted); padding:2px 6px; }
+  td .x { background:transparent; color:var(--muted); padding:6px 8px; }
+  td small { color:var(--muted); display:block; }
   .empty { color:var(--muted); text-align:center; padding:16px; }
-  @media (max-width:560px) { form { grid-template-columns:1fr 1fr; } .cards div { font-size:1.05rem; } }
+  dialog { border:0; border-radius:14px; background:var(--card); color:var(--text); padding:18px; width:min(92vw,380px); }
+  dialog::backdrop { background:rgba(0,0,0,.45); }
+  dialog h2 { margin:0 0 12px; font-size:1.1rem; }
+  dialog p { color:var(--muted); font-size:.92rem; }
+  .row { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap; }
+  [hidden] { display:none !important; }
 </style>
 </head>
 <body>
 <main>
-  <h1>💰 Harcama Takip</h1>
+  <header>
+    <h1>💰 Harcama Takip</h1>
+    <button id="install" class="ghost" hidden>⬇ Yükle</button>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Projeler"></nav>
+
   <div class="cards">
     <div class="card"><small>Bakiye</small><div id="bal">₺0</div></div>
     <div class="card"><small>Gelir</small><div id="inc" class="inc">₺0</div></div>
     <div class="card"><small>Gider</small><div id="exp" class="exp">₺0</div></div>
   </div>
-  <form id="form">
+
+  <form id="form" class="add">
     <input id="desc" placeholder="Açıklama" required>
-    <input id="amount" type="number" step="0.01" min="0.01" placeholder="Tutar" required>
-    <select id="cat">
+    <input id="amount" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="Tutar" required>
+    <select id="cat" aria-label="Kategori">
       <option value="gelir">Gelir</option>
-      <option value="market" selected>Market</option>
+      <option value="malzeme" selected>Malzeme</option>
+      <option value="işçilik">İşçilik</option>
+      <option value="nakliye">Nakliye</option>
+      <option value="market">Market</option>
       <option value="fatura">Fatura</option>
       <option value="ulaşım">Ulaşım</option>
       <option value="eğlence">Eğlence</option>
       <option value="sağlık">Sağlık</option>
       <option value="diğer">Diğer</option>
     </select>
+    <select id="proj" aria-label="Proje"></select>
+    <input id="date" type="date" aria-label="Tarih" required>
     <button>Ekle</button>
   </form>
+
+  <div class="panel">
+    <div class="panel-head">
+      <strong>📝 Günlük not</strong>
+      <div class="daynav">
+        <button type="button" class="ghost" id="prevDay" aria-label="Önceki gün">‹</button>
+        <input type="date" id="noteDate" aria-label="Not tarihi">
+        <button type="button" class="ghost" id="nextDay" aria-label="Sonraki gün">›</button>
+      </div>
+    </div>
+    <div id="notes"></div>
+    <details class="hist" id="histBox">
+      <summary>Geçmiş notlar</summary>
+      <div id="hist"></div>
+    </details>
+  </div>
+
   <div class="panel">
     <strong>Kategoriye göre giderler</strong>
     <div id="bars"></div>
   </div>
   <div class="panel">
-    <strong>İşlemler</strong>
+    <div class="panel-head">
+      <strong>İşlemler</strong>
+      <button type="button" class="ghost" id="editProj" hidden>✎ Projeyi düzenle</button>
+    </div>
     <table><tbody id="rows"></tbody></table>
   </div>
 </main>
+
+<dialog id="projDlg">
+  <form method="dialog" id="projForm">
+    <h2 id="projTitle">Yeni proje</h2>
+    <input id="projName" placeholder="Örn. 1. İnşaat" maxlength="40" required>
+    <div class="row">
+      <button type="button" class="danger" id="projDel" hidden>Sil</button>
+      <button type="button" class="ghost" id="projCancel">Vazgeç</button>
+      <button id="projSave">Kaydet</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="confirmDlg">
+  <h2>Proje silinsin mi?</h2>
+  <p id="confirmText"></p>
+  <div class="row">
+    <button type="button" class="ghost" id="confirmNo">Vazgeç</button>
+    <button type="button" class="danger" id="confirmYes">Evet, sil</button>
+  </div>
+</dialog>
+
 <script>
-  const KEY = 'harcamalar';
-  const money = n => '₺' + n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  let items;
-  try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch { items = []; }
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {} };
+  const KEY = 'harcamalar', PKEY = 'ht_projeler', NKEY = 'ht_notlar', AKEY = 'ht_aktif';
+  const $ = id => document.getElementById(id);
+  const money = n => (n < 0 ? '−' : '') + '₺' + Math.abs(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
+  const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const fromYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d, 12); };
+  const trDate = s => fromYmd(s).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'short' });
+
+  let items = load(KEY, []);
+  let projects = load(PKEY, null);
+  let notes = load(NKEY, {});
+  let active = load(AKEY, 'all');
+  if (!Array.isArray(items)) items = [];
+  if (!Array.isArray(projects) || !projects.length) projects = [{ id: 'genel', name: 'Genel' }];
+  if (!notes || typeof notes !== 'object') notes = {};
+
+  // Eski kayıtları (proje alanı olmayan) ilk projeye bağla
+  let migrated = false;
+  items.forEach(i => { if (!projects.some(p => p.id === i.proj)) { i.proj = projects[0].id; migrated = true; } });
+  if (active !== 'all' && !projects.some(p => p.id === active)) active = 'all';
+  store(PKEY, projects);
+  if (migrated) store(KEY, items);
+
+  const saveItems = () => store(KEY, items);
+  const projName = id => (projects.find(p => p.id === id) || {}).name || '';
+  const visible = () => active === 'all' ? projects : projects.filter(p => p.id === active);
+
+  function setActive(id) {
+    active = id; store(AKEY, active);
+    if (id !== 'all') $('proj').value = id;
+    render();
+  }
+
+  function renderTabs() {
+    const tabs = $('tabs');
+    tabs.innerHTML = '';
+    const mk = (label, cls, fn) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'tab ' + cls; b.textContent = label; b.onclick = fn;
+      tabs.append(b);
+    };
+    mk('Tümü', active === 'all' ? 'on' : '', () => setActive('all'));
+    projects.forEach(p => mk(p.name, active === p.id ? 'on' : '', () => setActive(p.id)));
+    mk('+ Proje', 'add', () => openProj(null));
+
+    const sel = $('proj'), cur = sel.value;
+    sel.innerHTML = '';
+    projects.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; sel.append(o); });
+    sel.value = active !== 'all' ? active : (projects.some(p => p.id === cur) ? cur : projects[0].id);
+    $('editProj').hidden = active === 'all';
+  }
+
+  function renderNotes() {
+    const day = $('noteDate').value;
+    const box = $('notes');
+    box.innerHTML = '';
+    visible().forEach(p => {
+      const wrap = document.createElement('div');
+      wrap.className = 'note';
+      const key = p.id + '|' + day;
+      const lab = document.createElement('label');
+      lab.textContent = `${p.name} · ${trDate(day)}`;
+      const ta = document.createElement('textarea');
+      ta.placeholder = 'Bugün ne yapıldı? Gelen malzeme, çalışan usta, yapılacaklar…';
+      ta.value = notes[key] || '';
+      const st = document.createElement('div');
+      st.className = 'saved';
+      let t;
+      ta.oninput = () => {
+        const v = ta.value;
+        if (v.trim()) notes[key] = v; else delete notes[key];
+        store(NKEY, notes);
+        st.textContent = 'Kaydedildi ✓';
+        clearTimeout(t);
+        t = setTimeout(() => { st.textContent = ''; renderHist(); }, 1200);
+      };
+      wrap.append(lab, ta, st);
+      box.append(wrap);
+    });
+    renderHist();
+  }
+
+  function renderHist() {
+    const ids = new Set(visible().map(p => p.id));
+    const list = Object.entries(notes)
+      .map(([k, text]) => { const n = k.lastIndexOf('|'); return { proj: k.slice(0, n), day: k.slice(n + 1), text }; })
+      .filter(n => ids.has(n.proj))
+      .sort((a, b) => b.day.localeCompare(a.day) || projName(a.proj).localeCompare(projName(b.proj), 'tr'));
+    const hist = $('hist');
+    hist.innerHTML = '';
+    $('histBox').querySelector('summary').textContent = `Geçmiş notlar (${list.length})`;
+    if (!list.length) { hist.innerHTML = '<div class="empty">Henüz not yok</div>'; return; }
+    list.slice(0, 60).forEach(n => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      const s = document.createElement('small'), sp = document.createElement('span');
+      s.textContent = `${trDate(n.day)} · ${projName(n.proj)}`;
+      sp.textContent = n.text;
+      b.append(s, sp);
+      b.onclick = () => { $('noteDate').value = n.day; renderNotes(); $('noteDate').scrollIntoView({ block: 'center' }); };
+      hist.append(b);
+    });
+  }
 
   function render() {
-    const inc = items.filter(i => i.cat === 'gelir').reduce((s, i) => s + i.amount, 0);
-    const exp = items.filter(i => i.cat !== 'gelir').reduce((s, i) => s + i.amount, 0);
-    document.getElementById('bal').textContent = money(inc - exp);
-    document.getElementById('inc').textContent = money(inc);
-    document.getElementById('exp').textContent = money(exp);
+    renderTabs();
+    const shown = active === 'all' ? items : items.filter(i => i.proj === active);
+    const inc = shown.filter(i => i.cat === 'gelir').reduce((s, i) => s + i.amount, 0);
+    const exp = shown.filter(i => i.cat !== 'gelir').reduce((s, i) => s + i.amount, 0);
+    $('bal').textContent = money(inc - exp);
+    $('inc').textContent = money(inc);
+    $('exp').textContent = money(exp);
 
     const byCat = {};
-    items.filter(i => i.cat !== 'gelir').forEach(i => byCat[i.cat] = (byCat[i.cat] || 0) + i.amount);
+    shown.filter(i => i.cat !== 'gelir').forEach(i => byCat[i.cat] = (byCat[i.cat] || 0) + i.amount);
     const max = Math.max(0, ...Object.values(byCat));
-    const bars = document.getElementById('bars');
+    const bars = $('bars');
     bars.innerHTML = '';
     Object.entries(byCat).sort((a, b) => b[1] - a[1]).forEach(([cat, sum]) => {
       const row = document.createElement('div');
@@ -93,38 +288,102 @@
     });
     if (!Object.keys(byCat).length) bars.innerHTML = '<div class="empty">Henüz gider yok</div>';
 
-    const rows = document.getElementById('rows');
+    const rows = $('rows');
     rows.innerHTML = '';
-    [...items].reverse().forEach(i => {
+    [...shown].sort((a, b) => b.date - a.date || b.id - a.id).forEach(i => {
       const tr = document.createElement('tr');
       const isInc = i.cat === 'gelir';
-      tr.innerHTML = `<td></td><td style="color:var(--muted)"></td><td class="amt ${isInc ? 'inc' : 'exp'}"></td><td><button class="x" title="Sil">✕</button></td>`;
-      tr.children[0].textContent = i.desc;
-      tr.children[1].textContent = `${i.cat} · ${new Date(i.date).toLocaleDateString('tr-TR')}`;
-      tr.children[2].textContent = (isInc ? '+' : '−') + money(i.amount);
-      tr.querySelector('.x').onclick = () => { items = items.filter(x => x.id !== i.id); save(); render(); };
+      tr.innerHTML = `<td><span></span><small></small></td><td class="amt ${isInc ? 'inc' : 'exp'}"></td><td><button class="x" title="Sil" aria-label="Sil">✕</button></td>`;
+      tr.querySelector('span').textContent = i.desc;
+      const meta = [i.cat, new Date(i.date).toLocaleDateString('tr-TR')];
+      if (active === 'all' && projects.length > 1) meta.unshift(projName(i.proj));
+      tr.querySelector('small').textContent = meta.join(' · ');
+      tr.children[1].textContent = (isInc ? '+' : '−') + money(i.amount);
+      tr.querySelector('.x').onclick = () => { items = items.filter(x => x.id !== i.id); saveItems(); render(); };
       rows.append(tr);
     });
-    if (!items.length) rows.innerHTML = '<tr><td class="empty">Henüz işlem yok</td></tr>';
+    if (!shown.length) rows.innerHTML = '<tr><td class="empty">Henüz işlem yok</td></tr>';
+
+    renderNotes();
   }
 
-  document.getElementById('form').onsubmit = e => {
+  $('form').onsubmit = e => {
     e.preventDefault();
-    const amount = parseFloat(document.getElementById('amount').value);
+    const amount = parseFloat($('amount').value);
     if (!(amount > 0)) return;
+    const day = $('date').value || ymd(new Date());
     items.push({
       id: Date.now(),
-      desc: document.getElementById('desc').value.trim(),
+      desc: $('desc').value.trim(),
       amount,
-      cat: document.getElementById('cat').value,
-      date: Date.now(),
+      cat: $('cat').value,
+      proj: $('proj').value,
+      date: fromYmd(day).getTime(),
     });
-    save();
-    e.target.reset();
-    document.getElementById('cat').value = 'market';
+    saveItems();
+    $('desc').value = ''; $('amount').value = '';
     render();
   };
 
+  // Günlük not tarihi
+  const shiftDay = n => { const d = fromYmd($('noteDate').value); d.setDate(d.getDate() + n); $('noteDate').value = ymd(d); renderNotes(); };
+  $('prevDay').onclick = () => shiftDay(-1);
+  $('nextDay').onclick = () => shiftDay(1);
+  $('noteDate').onchange = () => { if (!$('noteDate').value) $('noteDate').value = ymd(new Date()); renderNotes(); };
+
+  // Proje ekleme / düzenleme / silme
+  let editing = null;
+  function openProj(id) {
+    editing = id;
+    $('projTitle').textContent = id ? 'Projeyi düzenle' : 'Yeni proje';
+    $('projName').value = id ? projName(id) : '';
+    $('projDel').hidden = !id || projects.length < 2;
+    $('projDlg').showModal();
+    $('projName').focus();
+  }
+  $('editProj').onclick = () => openProj(active);
+  $('projCancel').onclick = () => $('projDlg').close();
+  $('projForm').onsubmit = e => {
+    e.preventDefault();
+    const name = $('projName').value.trim();
+    if (!name) return;
+    if (editing) {
+      projects.find(p => p.id === editing).name = name;
+    } else {
+      const id = 'p' + Date.now();
+      projects.push({ id, name });
+      active = id; store(AKEY, active);
+    }
+    store(PKEY, projects);
+    $('projDlg').close();
+    render();
+  };
+  $('projDel').onclick = () => {
+    const n = items.filter(i => i.proj === editing).length;
+    const m = Object.keys(notes).filter(k => k.startsWith(editing + '|')).length;
+    $('confirmText').textContent = `"${projName(editing)}" projesi, ${n} işlemi ve ${m} notuyla birlikte kalıcı olarak silinecek.`;
+    $('projDlg').close();
+    $('confirmDlg').showModal();
+  };
+  $('confirmNo').onclick = () => $('confirmDlg').close();
+  $('confirmYes').onclick = () => {
+    items = items.filter(i => i.proj !== editing);
+    Object.keys(notes).forEach(k => { if (k.startsWith(editing + '|')) delete notes[k]; });
+    projects = projects.filter(p => p.id !== editing);
+    saveItems(); store(NKEY, notes); store(PKEY, projects);
+    $('confirmDlg').close();
+    setActive('all');
+  };
+
+  // Telefona kurulum (PWA)
+  let deferred;
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('install').hidden = false; });
+  $('install').onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('install').hidden = true; };
+  addEventListener('appinstalled', () => { $('install').hidden = true; });
+  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+  $('date').value = $('noteDate').value = ymd(new Date());
   render();
 </script>
 </body>
