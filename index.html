@@ -977,15 +977,37 @@
     if (!err) { $('setNew').value = ''; renderCats(); renderSet(); }
   };
   $('meslekDlg').addEventListener('cancel', e => e.preventDefault());
-  $('fab').onclick = () => {
-    const ops = openProjects();
-    if (!ops.length) { openProjDlg(null); return; }
-    const sel = $('proj');
+  // Proje seçici: kilitli klasörler "🔒 ... (PIN ile aç)" olarak görünür, seçilince PIN sorulur
+  let projSelPrev = '';
+  function fillProjSelect(want) {
+    const ops = openProjects(), sel = $('proj');
     sel.innerHTML = '';
     ops.forEach(p => { const o = el('option', '', dirOf(p.id) ? `${p.name} (${dirById(dirOf(p.id)).name})` : p.name); o.value = p.id; sel.append(o); });
+    dirs.filter(d => isDirLocked(d.id) && projects.some(p => dirOf(p.id) === d.id)).forEach(d => {
+      const o = el('option', '', `🔒 ${d.name} (PIN ile aç)`); o.value = 'lock:' + d.id; sel.append(o);
+    });
+    sel.value = want || '';
+    if (!sel.value && ops.length) sel.value = ops.some(p => p.id === lastProj) ? lastProj : ops[0].id;
+    if (!sel.value && sel.options.length) sel.value = sel.options[0].value;
+    projSelPrev = sel.value;
+  }
+  $('proj').addEventListener('change', () => {
+    const sel = $('proj'), v = sel.value;
+    if (!v.startsWith('lock:')) { projSelPrev = v; return; }
+    const id = v.slice(5);
+    sel.value = projSelPrev.startsWith('lock:') ? '' : projSelPrev;
+    lockOpen('dir', "Klasörün PIN'ini girin", () => {
+      unlocked.add(id);
+      const first = projects.find(p => dirOf(p.id) === id);
+      fillProjSelect(first && first.id);
+      render();
+    }, id);
+  });
+  $('fab').onclick = () => {
+    if (!projects.length) { openProjDlg(null); return; }
+    const ops = openProjects();
     const inDir = view === 'dir' ? ops.find(p => dirOf(p.id) === curDir) : null;
-    sel.value = cur || (inDir && inDir.id) || (statsProj !== 'all' && view === 'stats' ? statsProj : lastProj);
-    if (!sel.value) sel.value = ops[0].id;
+    fillProjSelect(cur || (inDir && inDir.id) || (statsProj !== 'all' && view === 'stats' ? statsProj : lastProj));
     $('date').value = today();
     $('amount').value = ''; $('desc').value = '';
     $('addDlg').showModal();
@@ -999,6 +1021,8 @@
     if (!(amount > 0)) return;
     const id = Date.now();
     const proj = $('proj').value;
+    if (proj.startsWith('lock:')) { projSelPrev = ''; $('proj').dispatchEvent(new Event('change')); return; }
+    if (!projects.some(p => p.id === proj) || projHidden(proj)) { $('proj').focus(); return; }
     const kc = kind === 'gelir' ? 'gelir' : cat;
     // Açıklama isteğe bağlı: boşsa kayıt kategorinin adıyla tutulur
     const typed = $('desc').value.trim().replace(/\s+/g, ' ');
@@ -1305,6 +1329,7 @@
       unlocked.delete(did);
       saveItems(); store(NKEY, notes); store(PKEY, projects); store(DKEY, dirs); store(AKEY, lastProj);
       $('sifirlaDlg').close(); lockClose();
+      if ($('addDlg').open) $('addDlg').close();
       show('home');
       return;
     }
