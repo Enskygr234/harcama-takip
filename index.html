@@ -264,7 +264,7 @@
   </div>
   <form id="form" class="kayit">
     <input id="amount" class="tam num" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="Tutar (₺)" aria-label="Tutar" required>
-    <input id="desc" class="tam" placeholder="Ne için? Örn. çimento" aria-label="Açıklama" required>
+    <input id="desc" class="tam" placeholder="Ne için? Örn. çimento" aria-label="Açıklama (isteğe bağlı)">
     <div class="cipler tam" id="cats" role="group" aria-label="Kategori"></div>
     <div class="cipler tam" id="kalemler" role="group" aria-label="Kayıtlı kalemler" hidden></div>
     <select id="proj" aria-label="Proje"></select>
@@ -648,7 +648,7 @@
     $('turGelir').setAttribute('aria-pressed', k === 'gelir');
     $('cats').hidden = k === 'gelir';
     $('submit').textContent = k === 'gelir' ? 'Gelir ekle' : 'Gider ekle';
-    $('desc').placeholder = k === 'gelir' ? 'Nereden? Örn. ' + ms().gelir : 'Ne için? Örn. ' + ms().gider;
+    $('desc').placeholder = (k === 'gelir' ? 'Nereden? Örn. ' + ms().gelir : 'Ne için? Örn. ' + ms().gider) + ' (isteğe bağlı)';
     $('projName').placeholder = 'Örn. ' + ms().proje;
     renderKalemler();
   }
@@ -867,8 +867,10 @@
     const id = Date.now();
     const proj = $('proj').value;
     const kc = kind === 'gelir' ? 'gelir' : cat;
-    items.push({ id, desc: $('desc').value.trim(), amount, cat: kc, proj, date: fromYmd($('date').value || today()).getTime() });
-    rememberKalem(kc, $('desc').value, amount);
+    // Açıklama isteğe bağlı: boşsa kayıt kategorinin adıyla tutulur
+    const typed = $('desc').value.trim().replace(/\s+/g, ' ');
+    items.push({ id, desc: typed || catName(kc), amount, cat: kc, proj, date: fromYmd($('date').value || today()).getTime() });
+    if (typed) rememberKalem(kc, typed, amount);
     lastAdded = id; lastProj = proj; store(AKEY, proj);
     saveItems();
     $('addDlg').close();
