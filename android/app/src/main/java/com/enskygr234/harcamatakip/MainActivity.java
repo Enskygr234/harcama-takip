@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -28,7 +29,9 @@ public class MainActivity extends Activity {
     private static final String BACK_JS =
             "(function(){"
             + "var d=Array.prototype.slice.call(document.querySelectorAll('dialog[open]')).pop();"
-            + "if(d){if(d.id==='meslekDlg')return 'stay';d.close();return 'closed';}"
+            + "if(d){if(d.id==='meslekDlg')return 'stay';"
+            + "if(d.id==='kilit'&&d.dataset.mode==='unlock')return 'exit';"
+            + "d.close();return 'closed';}"
             + "if(history.state&&history.state.p){history.back();return 'back';}"
             + "if(typeof view!=='undefined'&&view!=='home'&&typeof show==='function'){show('home');return 'home';}"
             + "return 'exit';})()";
@@ -40,6 +43,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Son uygulamalar ekranında gelir-gider görünmesin (Android 13+).
+        if (Build.VERSION.SDK_INT >= 33) {
+            setRecentsScreenshotEnabled(false);
+        }
 
         loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
