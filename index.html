@@ -129,6 +129,13 @@
   .sira { display:flex; gap:8px; flex-wrap:wrap; }
   .sira button { min-height:48px; }
   .ikincil:disabled, .tehlike:disabled { opacity:.45; }
+  .kart-bas .ad { display:flex; align-items:center; gap:10px; min-width:0; }
+  .kart-bas .ad svg { flex:none; color:var(--yesil); }
+  .kart-bas .ad b { min-width:0; }
+  .kilitli { display:flex; align-items:center; gap:8px; color:var(--soluk); font-weight:700; margin-top:10px; }
+  label.secim { display:flex; align-items:center; gap:12px; min-height:52px; font-weight:700; margin-top:10px; cursor:pointer; }
+  label.secim input { width:24px; height:24px; min-height:0; padding:0; flex:none; accent-color:var(--yesil); }
+  .alan-adi { display:block; font-weight:700; font-size:.9rem; color:var(--soluk); margin:12px 0 6px; }
 
   /* PIN kilidi */
   dialog.kilit { width:100vw; max-width:none; height:100dvh; height:100vh; max-height:none; margin:0; border-radius:0; background:var(--zemin);
@@ -192,19 +199,34 @@
   <!-- Projeler -->
   <section id="v-home">
     <div class="ozet">
-      <small>Tüm projelerin bakiyesi</small>
+      <small id="totalLbl">Tüm projelerin bakiyesi</small>
       <div class="buyuk num" id="total">₺0,00</div>
     </div>
     <div class="liste" id="cards"></div>
     <button type="button" class="yeni-proje" id="newProj" style="margin-top:12px">Yeni proje ekle</button>
+    <button type="button" class="yeni-proje" id="newDir" style="margin-top:12px">Yeni klasör</button>
     <button type="button" class="ikincil" id="openSet" style="width:100%;min-height:54px;margin-top:12px;text-align:center">Kategoriler ve ayarlar</button>
     <button type="button" class="ikincil" id="install" style="width:100%;margin-top:12px;text-align:center" hidden>Uygulamayı telefona yükle</button>
+  </section>
+
+  <!-- Klasör -->
+  <section id="v-dir" hidden>
+    <div class="ust-satir">
+      <button type="button" class="geri" id="dirBack"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Projeler</button>
+      <button type="button" class="ikincil" id="editDir">Düzenle</button>
+    </div>
+    <div class="ozet">
+      <small id="dirLabel"></small>
+      <div class="buyuk num" id="dirTotal">₺0,00</div>
+    </div>
+    <div class="liste" id="dirCards"></div>
+    <button type="button" class="yeni-proje" id="dirNewProj" style="margin-top:12px">Bu klasöre proje ekle</button>
   </section>
 
   <!-- Proje ayrıntısı -->
   <section id="v-proj" hidden>
     <div class="ust-satir">
-      <button type="button" class="geri" id="back"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Projeler</button>
+      <button type="button" class="geri" id="back"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLbl">Projeler</span></button>
       <button type="button" class="ikincil" id="editProj">Düzenle</button>
     </div>
     <div class="kart">
@@ -278,10 +300,35 @@
   <form method="dialog" id="projForm">
     <h2 id="projTitle">Yeni proje</h2>
     <input id="projName" placeholder="Örn. 1. İnşaat" maxlength="40" aria-label="Proje adı" required>
+    <label class="alan-adi" for="projDir">Klasör</label>
+    <select id="projDir"></select>
     <div class="dugmeler">
       <button type="button" class="tehlike" id="projDel" hidden>Sil</button>
       <button type="button" class="ikincil" id="projCancel">Vazgeç</button>
       <button class="ana" id="projSave">Kaydet</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dirDlg" class="orta" aria-labelledby="dirTitle">
+  <form method="dialog" id="dirForm">
+    <h2 id="dirTitle">Yeni klasör</h2>
+    <input id="dirName" placeholder="Örn. Elektrik işleri" maxlength="40" aria-label="Klasör adı" required>
+    <label class="secim" id="dirKilitWrap"><input type="checkbox" id="dirKilitle"> PIN ile kilitle (isteğe bağlı)</label>
+    <div id="dirPinBox">
+      <h3>Klasör kilidi</h3>
+      <p id="dirPinDurum"></p>
+      <div class="sira" style="margin-top:8px">
+        <button type="button" class="ikincil" id="dirPinAc">PIN koy</button>
+        <button type="button" class="ikincil" id="dirPinDegis">PIN'i değiştir</button>
+        <button type="button" class="ikincil" id="dirPinKapat">PIN'i kaldır</button>
+      </div>
+      <div class="ok" id="dirPinBilgi" aria-live="polite"></div>
+    </div>
+    <div class="dugmeler">
+      <button type="button" class="tehlike" id="dirDel">Klasörü sil</button>
+      <button type="button" class="ikincil" id="dirCancel">Vazgeç</button>
+      <button class="ana">Kaydet</button>
     </div>
   </form>
 </dialog>
@@ -358,7 +405,7 @@
 <dialog id="sifirlaDlg" class="orta" aria-labelledby="sifirlaTitle">
   <form method="dialog" id="sifirlaForm">
     <h2 id="sifirlaTitle">PIN'ini mi unuttun?</h2>
-    <p>PIN olmadan kayıtlarına ulaşmanın bir yolu yok. Uygulamayı sıfırlarsan tüm projeler, kayıtlar, notlar ve kategoriler bu telefondan kalıcı olarak silinir.</p>
+    <p id="sifirlaText"></p>
     <p style="margin-top:10px">Onaylamak için <b>SİL</b> yaz.</p>
     <input id="sifirlaYaz" autocomplete="off" aria-label="Onay için SİL yazın" style="margin-top:8px">
     <div class="uyari" id="sifirlaWarn" aria-live="polite"></div>
@@ -392,7 +439,7 @@
 
 <script>
   const KEY = 'harcamalar', PKEY = 'ht_projeler', NKEY = 'ht_notlar', AKEY = 'ht_aktif';
-  const MKEY = 'ht_meslek', CKEY = 'ht_kategoriler', KALKEY = 'ht_kalemler', KADKEY = 'ht_katadlari', PINKEY = 'ht_pin';
+  const MKEY = 'ht_meslek', CKEY = 'ht_kategoriler', KALKEY = 'ht_kalemler', KADKEY = 'ht_katadlari', PINKEY = 'ht_pin', DKEY = 'ht_klasorler';
   // İlk sürümün kategorileri küçük harfli anahtarlarla saklanıyor; yenileri doğrudan adıyla saklanır
   const LEGACY = { 'malzeme': 'Malzeme', 'işçilik': 'İşçilik', 'nakliye': 'Nakliye', 'market': 'Market', 'fatura': 'Fatura',
                    'ulaşım': 'Ulaşım', 'eğlence': 'Eğlence', 'sağlık': 'Sağlık', 'diğer': 'Diğer' };
@@ -427,6 +474,7 @@
   if (!Array.isArray(items)) items = [];
   if (!Array.isArray(projects) || !projects.length) projects = [{ id: 'genel', name: 'Genel' }];
   if (!notes || typeof notes !== 'object') notes = {};
+  let dirs = load(DKEY, []); if (!Array.isArray(dirs)) dirs = [];
   KAL = load(KALKEY, {}); if (!KAL || typeof KAL !== 'object' || Array.isArray(KAL)) KAL = {};
   KATAD = load(KADKEY, {}); if (!KATAD || typeof KATAD !== 'object' || Array.isArray(KATAD)) KATAD = {};
   // Eski kayıtları (proje alanı olmayan) ilk projeye bağla
@@ -444,7 +492,7 @@
   const ms = () => MESLEK.find(m => m.id === meslek) || MESLEK[0];
   const sameName = (a, b) => a.toLocaleLowerCase('tr') === b.toLocaleLowerCase('tr');
 
-  let view = 'home', cur = null, statsProj = 'all', kind = 'gider', cat = cats[0], lastAdded = null;
+  let view = 'home', cur = null, curDir = null, statsProj = 'all', kind = 'gider', cat = cats[0], lastAdded = null;
   let lastProj = load(AKEY, null);
   if (!projects.some(p => p.id === lastProj)) lastProj = projects[0].id;
 
@@ -455,13 +503,21 @@
     const exp = list.filter(i => i.cat !== 'gelir').reduce((s, i) => s + i.amount, 0);
     return { inc, exp, bal: inc - exp };
   };
+  // Klasörler: kilitli bir klasörün projeleri açılana kadar hiçbir listede ve toplamda görünmez
+  const unlocked = new Set();
+  const dirById = id => dirs.find(d => d.id === id);
+  const dirOf = pid => { const p = projects.find(x => x.id === pid); return p && p.dir && dirById(p.dir) ? p.dir : null; };
+  const isDirLocked = id => { const d = dirById(id); return !!(d && d.pin && !unlocked.has(id)); };
+  const projHidden = pid => { const d = dirOf(pid); return !!d && isDirLocked(d); };
+  const openProjects = () => projects.filter(p => !projHidden(p.id));
+  const LOCK_ICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>';
   const setBar = (fill, s) => { fill.style.width = (s.inc > 0 ? Math.min(100, s.exp / s.inc * 100) : (s.exp > 0 ? 100 : 0)) + '%'; };
 
-  function show(v, projId) {
-    view = v; cur = v === 'proj' ? projId : null;
-    ['home', 'proj', 'notes', 'stats'].forEach(n => $('v-' + n).hidden = n !== v);
+  function show(v, id) {
+    view = v; cur = v === 'proj' ? id : null; curDir = v === 'dir' ? id : null;
+    ['home', 'dir', 'proj', 'notes', 'stats'].forEach(n => $('v-' + n).hidden = n !== v);
     document.querySelectorAll('.menu button').forEach(b => {
-      const on = b.dataset.view === v || (v === 'proj' && b.dataset.view === 'home');
+      const on = b.dataset.view === v || ((v === 'proj' || v === 'dir') && b.dataset.view === 'home');
       if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     $('fab').hidden = v === 'notes';
@@ -471,37 +527,108 @@
   document.querySelectorAll('.menu button').forEach(b => b.onclick = () => show(b.dataset.view));
   function openProject(id) {
     lastProj = id; store(AKEY, id);
-    try { history.pushState({ p: id }, ''); } catch {}
+    try { history.pushState({ p: id, f: dirOf(id) }, ''); } catch {}
     show('proj', id);
   }
-  $('back').onclick = () => { try { if (history.state && history.state.p) return history.back(); } catch {} show('home'); };
-  addEventListener('popstate', () => { if (view === 'proj') show('home'); });
+  function enterDir(id) {
+    try { history.pushState({ f: id }, ''); } catch {}
+    show('dir', id);
+  }
+  function openDir(id) {
+    if (isDirLocked(id)) lockOpen('dir', "Klasörün PIN'ini girin", () => { unlocked.add(id); enterDir(id); }, id);
+    else enterDir(id);
+  }
+  $('back').onclick = () => {
+    const d = dirOf(cur);
+    try {
+      const st = history.state;
+      if (st && st.p) {
+        if ((st.f || null) === d) return history.back();
+        history.replaceState(d ? { f: d } : null, '');   // proje başka klasöre taşındı
+      }
+    } catch {}
+    d && !isDirLocked(d) ? show('dir', d) : show('home');
+  };
+  $('dirBack').onclick = () => {
+    try { if (history.state && history.state.f && !history.state.p) return history.back(); } catch {}
+    show('home');
+  };
+  addEventListener('popstate', () => {
+    const st = history.state || {};
+    if (st.p && projects.some(p => p.id === st.p) && !projHidden(st.p)) show('proj', st.p);
+    else if (st.f && dirById(st.f) && !isDirLocked(st.f)) show('dir', st.f);
+    else if (view !== 'home') show('home');
+  });
 
+  function projCard(p) {
+    const list = items.filter(i => i.proj === p.id), s = sums(list);
+    const card = el('button', 'kart');
+    card.type = 'button'; card.dataset.id = p.id;
+    const head = el('div', 'kart-bas');
+    head.append(el('b', '', p.name));
+    head.insertAdjacentHTML('beforeend', CHEVRON);
+    card.append(head, el('div', 'tutar num' + (s.bal < 0 ? ' eksi' : ''), money(s.bal)));
+    if (list.length) {
+      const ray = el('div', 'ray butce'), fill = el('div', 'dolu');
+      setBar(fill, s); ray.append(fill);
+      const info = el('div', 'alt-bilgi num');
+      info.append(el('span', 'gider', 'Gider ' + short(s.exp)), el('span', 'gelir', 'Gelir ' + short(s.inc)));
+      card.append(ray, info);
+    } else {
+      card.append(el('div', 'bos', 'Henüz kayıt yok. Dokunup ilk gideri ekleyin.'));
+    }
+    card.onclick = () => openProject(p.id);
+    return card;
+  }
+  function dirCard(d) {
+    const locked = isDirLocked(d.id);
+    const ps = projects.filter(p => dirOf(p.id) === d.id);
+    const card = el('button', 'kart');
+    card.type = 'button'; card.dataset.dir = d.id;
+    const head = el('div', 'kart-bas'), ad = el('span', 'ad');
+    ad.insertAdjacentHTML('beforeend', FOLDER);
+    ad.append(el('b', '', d.name));
+    if (d.pin) ad.insertAdjacentHTML('beforeend', LOCK_ICON);
+    head.append(ad);
+    head.insertAdjacentHTML('beforeend', CHEVRON);
+    card.append(head);
+    if (locked) {
+      const k = el('div', 'kilitli');
+      k.append(`Kilitli · ${ps.length} proje`);
+      card.append(k);
+    } else {
+      const s = sums(items.filter(i => ps.some(p => p.id === i.proj)));
+      card.append(el('div', 'tutar num' + (s.bal < 0 ? ' eksi' : ''), money(s.bal)));
+      const info = el('div', 'alt-bilgi num');
+      info.append(el('span', '', ps.length ? `${ps.length} proje` : 'Boş klasör'), el('span', 'gider', 'Gider ' + short(s.exp)));
+      card.append(info);
+    }
+    card.onclick = () => openDir(d.id);
+    return card;
+  }
   function renderHome() {
-    $('total').textContent = money(sums(items).bal);
-    $('total').classList.toggle('eksi', sums(items).bal < 0);
+    const vis = items.filter(i => !projHidden(i.proj));
+    const bal = sums(vis).bal;
+    $('total').textContent = money(bal);
+    $('total').classList.toggle('eksi', bal < 0);
+    $('totalLbl').textContent = dirs.some(d => isDirLocked(d.id)) ? 'Bakiye (kilitli klasörler hariç)' : 'Tüm projelerin bakiyesi';
     const box = $('cards');
     box.innerHTML = '';
-    projects.forEach(p => {
-      const list = items.filter(i => i.proj === p.id), s = sums(list);
-      const card = el('button', 'kart');
-      card.type = 'button'; card.dataset.id = p.id;
-      const head = el('div', 'kart-bas');
-      head.append(el('b', '', p.name));
-      head.insertAdjacentHTML('beforeend', CHEVRON);
-      card.append(head, el('div', 'tutar num' + (s.bal < 0 ? ' eksi' : ''), money(s.bal)));
-      if (list.length) {
-        const ray = el('div', 'ray butce'), fill = el('div', 'dolu');
-        setBar(fill, s); ray.append(fill);
-        const info = el('div', 'alt-bilgi num');
-        info.append(el('span', 'gider', 'Gider ' + short(s.exp)), el('span', 'gelir', 'Gelir ' + short(s.inc)));
-        card.append(ray, info);
-      } else {
-        card.append(el('div', 'bos', 'Henüz kayıt yok. Dokunup ilk gideri ekleyin.'));
-      }
-      card.onclick = () => openProject(p.id);
-      box.append(card);
-    });
+    dirs.forEach(d => box.append(dirCard(d)));
+    projects.filter(p => !dirOf(p.id)).forEach(p => box.append(projCard(p)));
+  }
+  function renderDir() {
+    const d = dirById(curDir);
+    if (!d || isDirLocked(curDir)) return show('home');
+    const ps = projects.filter(p => dirOf(p.id) === d.id);
+    const s = sums(items.filter(i => ps.some(p => p.id === i.proj)));
+    $('dirLabel').textContent = d.name + (d.pin ? ' · kilitli klasör' : '');
+    $('dirTotal').textContent = money(s.bal);
+    $('dirTotal').classList.toggle('eksi', s.bal < 0);
+    const box = $('dirCards');
+    box.innerHTML = '';
+    ps.forEach(p => box.append(projCard(p)));
+    if (!ps.length) box.append(el('div', 'kart bos', 'Bu klasör boş. Aşağıdan proje ekle ya da bir projeyi düzenleyip bu klasöre taşı.'));
   }
 
   function noteBox(p, day, onSaved) {
@@ -528,7 +655,8 @@
 
   function renderProj() {
     const p = projects.find(x => x.id === cur);
-    if (!p) return show('home');
+    if (!p || projHidden(cur)) return show('home');
+    $('backLbl').textContent = dirOf(cur) ? dirById(dirOf(cur)).name : 'Projeler';
     const list = items.filter(i => i.proj === cur), s = sums(list);
     $('pName').textContent = p.name;
     $('pBal').textContent = money(s.bal);
@@ -573,7 +701,7 @@
   function renderHist() {
     const list = Object.entries(notes)
       .map(([k, text]) => { const n = k.lastIndexOf('|'); return { proj: k.slice(0, n), day: k.slice(n + 1), text }; })
-      .filter(n => projects.some(p => p.id === n.proj))
+      .filter(n => projects.some(p => p.id === n.proj) && !projHidden(n.proj))
       .sort((a, b) => b.day.localeCompare(a.day) || projName(a.proj).localeCompare(projName(b.proj), 'tr'));
     const hist = $('hist');
     hist.innerHTML = '';
@@ -592,7 +720,7 @@
     const day = $('noteDate').value || today();
     const box = $('notes');
     box.innerHTML = '';
-    projects.forEach(p => {
+    openProjects().forEach(p => {
       const card = el('div', 'kart not');
       const lab = el('label', '', p.name);
       lab.htmlFor = 'not-' + p.id;
@@ -611,9 +739,10 @@
       b.onclick = () => { statsProj = id; renderStats(); };
       f.append(b);
     };
+    if (statsProj !== 'all' && (!projects.some(p => p.id === statsProj) || projHidden(statsProj))) statsProj = 'all';
     chip('all', 'Tümü');
-    projects.forEach(p => chip(p.id, p.name));
-    const list = items.filter(i => i.cat !== 'gelir' && (statsProj === 'all' || i.proj === statsProj));
+    openProjects().forEach(p => chip(p.id, p.name));
+    const list = items.filter(i => i.cat !== 'gelir' && !projHidden(i.proj) && (statsProj === 'all' || i.proj === statsProj));
     const exp = list.reduce((s, i) => s + i.amount, 0);
     $('sTotal').textContent = money(exp);
     const byCat = {};
@@ -636,6 +765,7 @@
 
   function render() {
     if (view === 'home') renderHome();
+    else if (view === 'dir') renderDir();
     else if (view === 'proj') renderProj();
     else if (view === 'notes') renderNotes();
     else renderStats();
@@ -848,11 +978,14 @@
   };
   $('meslekDlg').addEventListener('cancel', e => e.preventDefault());
   $('fab').onclick = () => {
+    const ops = openProjects();
+    if (!ops.length) { openProjDlg(null); return; }
     const sel = $('proj');
     sel.innerHTML = '';
-    projects.forEach(p => { const o = el('option', '', p.name); o.value = p.id; sel.append(o); });
-    sel.value = cur || (statsProj !== 'all' && view === 'stats' ? statsProj : lastProj);
-    if (!sel.value) sel.value = projects[0].id;
+    ops.forEach(p => { const o = el('option', '', dirOf(p.id) ? `${p.name} (${dirById(dirOf(p.id)).name})` : p.name); o.value = p.id; sel.append(o); });
+    const inDir = view === 'dir' ? ops.find(p => dirOf(p.id) === curDir) : null;
+    sel.value = cur || (inDir && inDir.id) || (statsProj !== 'all' && view === 'stats' ? statsProj : lastProj);
+    if (!sel.value) sel.value = ops[0].id;
     $('date').value = today();
     $('amount').value = ''; $('desc').value = '';
     $('addDlg').showModal();
@@ -884,11 +1017,16 @@
   $('noteDate').onchange = () => { if (!$('noteDate').value) $('noteDate').value = today(); renderNotes(); };
 
   // Proje ekleme / düzenleme / silme
-  let editing = null;
+  let editing = null, confirmMode = 'proj';
   function openProjDlg(id) {
     editing = id;
     $('projTitle').textContent = id ? 'Projeyi düzenle' : 'Yeni proje';
     $('projName').value = id ? projName(id) : '';
+    const sel = $('projDir'), curD = id ? dirOf(id) : (view === 'dir' ? curDir : null);
+    sel.innerHTML = '';
+    const none = el('option', '', 'Klasör yok (ana ekranda)'); none.value = ''; sel.append(none);
+    dirs.filter(d => !isDirLocked(d.id) || d.id === curD).forEach(d => { const o = el('option', '', d.name); o.value = d.id; sel.append(o); });
+    sel.value = curD || '';
     $('projDel').hidden = !id || projects.length < 2;
     $('projDlg').showModal();
     $('projName').focus();
@@ -900,8 +1038,11 @@
     e.preventDefault();
     const name = $('projName').value.trim();
     if (!name) return;
-    if (editing) projects.find(p => p.id === editing).name = name;
-    else projects.push({ id: 'p' + Date.now(), name });
+    const dir = $('projDir').value || null;
+    let p = editing && projects.find(x => x.id === editing);
+    if (p) p.name = name;
+    else { p = { id: 'p' + Date.now(), name }; projects.push(p); }
+    if (dir) p.dir = dir; else delete p.dir;
     store(PKEY, projects);
     $('projDlg').close();
     render();
@@ -909,12 +1050,24 @@
   $('projDel').onclick = () => {
     const n = items.filter(i => i.proj === editing).length;
     const m = Object.keys(notes).filter(k => k.startsWith(editing + '|')).length;
+    confirmMode = 'proj';
+    $('confirmTitle').textContent = 'Proje silinsin mi?';
+    $('confirmYes').textContent = 'Projeyi sil';
     $('confirmText').textContent = `"${projName(editing)}" projesi, ${n} işlemi ve ${m} notuyla birlikte kalıcı olarak silinecek.`;
     $('projDlg').close();
     $('confirmDlg').showModal();
   };
   $('confirmNo').onclick = () => $('confirmDlg').close();
   $('confirmYes').onclick = () => {
+    if (confirmMode === 'dir') {
+      projects.forEach(p => { if (p.dir === editingDir) delete p.dir; });
+      dirs = dirs.filter(d => d.id !== editingDir);
+      unlocked.delete(editingDir);
+      store(PKEY, projects); store(DKEY, dirs);
+      $('confirmDlg').close(); $('dirDlg').close();
+      show('home');
+      return;
+    }
     items = items.filter(i => i.proj !== editing);
     Object.keys(notes).forEach(k => { if (k.startsWith(editing + '|')) delete notes[k]; });
     projects = projects.filter(p => p.id !== editing);
@@ -923,6 +1076,66 @@
     saveItems(); store(NKEY, notes); store(PKEY, projects); store(AKEY, lastProj);
     $('confirmDlg').close();
     show('home');
+  };
+
+  // Klasör ekleme / düzenleme / silme
+  let editingDir = null;
+  function openDirDlg(id) {
+    editingDir = id;
+    $('dirTitle').textContent = id ? 'Klasörü düzenle' : 'Yeni klasör';
+    $('dirName').value = id ? dirById(id).name : '';
+    $('dirKilitWrap').hidden = !!id; $('dirKilitle').checked = false;
+    $('dirPinBox').hidden = !id; $('dirDel').hidden = !id;
+    $('dirPinBilgi').textContent = '';
+    if (id) updateDirPinUI();
+    $('dirDlg').showModal();
+    $('dirName').focus();
+  }
+  function updateDirPinUI() {
+    const d = dirById(editingDir), on = !!(d && d.pin);
+    $('dirPinDurum').textContent = on
+      ? 'Açık. Klasör açılırken PIN sorulur; kilitliyken içindeki tutarlar hiçbir yerde görünmez.'
+      : 'Kapalı. İstersen bu klasöre ayrı bir PIN koyabilirsin.';
+    $('dirPinAc').hidden = on; $('dirPinDegis').hidden = !on; $('dirPinKapat').hidden = !on;
+  }
+  $('newDir').onclick = () => openDirDlg(null);
+  $('dirNewProj').onclick = () => openProjDlg(null);
+  $('editDir').onclick = () => openDirDlg(curDir);
+  $('dirCancel').onclick = () => $('dirDlg').close();
+  $('dirForm').onsubmit = e => {
+    e.preventDefault();
+    const name = $('dirName').value.trim().replace(/\s+/g, ' ');
+    if (!name) return;
+    if (editingDir) { dirById(editingDir).name = name; store(DKEY, dirs); $('dirDlg').close(); render(); return; }
+    const id = 'd' + Date.now();
+    dirs.push({ id, name });
+    store(DKEY, dirs);
+    const lock = $('dirKilitle').checked;
+    $('dirDlg').close();
+    render();
+    if (lock) lockOpen('set1', `"${name}" için 4 haneli PIN girin`, null, id);
+  };
+  $('dirPinAc').onclick = () => { $('dirPinBilgi').textContent = ''; lockOpen('set1', "Klasör için 4 haneli PIN girin", null, editingDir); };
+  $('dirPinDegis').onclick = () => { $('dirPinBilgi').textContent = ''; lockOpen('check', "Klasörün mevcut PIN'ini girin", () => lockOpen('set1', '4 haneli yeni PIN girin', null, editingDir), editingDir); };
+  $('dirPinKapat').onclick = () => {
+    $('dirPinBilgi').textContent = '';
+    lockOpen('check', "PIN'i kaldırmak için klasörün PIN'ini girin", () => {
+      delete dirById(editingDir).pin;
+      store(DKEY, dirs); updateDirPinUI(); render();
+      $('dirPinBilgi').textContent = 'Klasör kilidi kaldırıldı.';
+    }, editingDir);
+  };
+  $('dirDel').onclick = () => {
+    const d = dirById(editingDir);
+    const go = () => {
+      const n = projects.filter(p => p.dir === d.id).length;
+      confirmMode = 'dir';
+      $('confirmTitle').textContent = 'Klasör silinsin mi?';
+      $('confirmYes').textContent = 'Klasörü sil';
+      $('confirmText').textContent = `"${d.name}" klasörü silinecek. İçindeki ${n} proje ve kayıtları silinmez, ana ekrana taşınır.`;
+      $('confirmDlg').showModal();
+    };
+    d.pin ? lockOpen('check', "Klasörü silmek için PIN'ini girin", go, d.id) : go();
   };
 
   // Telefona kurulum (PWA)
@@ -939,7 +1152,7 @@
   let pinData = load(PINKEY, null);
   if (!pinData || !pinData.hash || !pinData.salt) pinData = null;
   const LOCK_AFTER_MS = 30000;
-  const lk = { mode: null, val: '', first: '', fails: 0, until: 0, done: null };
+  const lk = { mode: null, val: '', first: '', fails: 0, until: 0, done: null, target: null };
   let hiddenAt = 0, waitTimer = 0;
   async function pinHash(p, salt) {
     const text = salt + ':' + p;
@@ -965,13 +1178,17 @@
     });
   })();
   const showDots = () => $('noktalar').querySelectorAll('span').forEach((d, i) => d.classList.toggle('dolu-n', i < lk.val.length));
-  function lockOpen(mode, msg, done) {
-    lk.mode = mode; lk.val = ''; lk.done = done || null;
+  function lockOpen(mode, msg, done, target) {
+    lk.mode = mode; lk.val = ''; lk.done = done || null; lk.target = target || null;
+    const d = lk.target && dirById(lk.target);
     $('kilit').dataset.mode = mode;
-    $('kilitBaslik').textContent = mode === 'unlock' ? 'Harcama Takip kilitli' : mode === 'check' ? 'Mevcut PIN' : 'Yeni PIN';
+    $('kilitBaslik').textContent = mode === 'unlock' ? 'Harcama Takip kilitli'
+      : mode === 'dir' ? `${d ? d.name : 'Klasör'} kilitli`
+      : mode === 'check' ? (d ? `${d.name}: mevcut PIN` : 'Mevcut PIN')
+      : (d ? `${d.name}: yeni PIN` : 'Yeni PIN');
     $('kilitMesaj').textContent = msg;
     $('pinVazgec').hidden = mode === 'unlock';
-    $('pinUnuttum').hidden = mode !== 'unlock';
+    $('pinUnuttum').hidden = mode !== 'unlock' && mode !== 'dir';
     $('noktalar').classList.remove('hata');
     showDots();
     if (!$('kilit').open) {
@@ -1005,13 +1222,23 @@
     if (lk.mode === 'set2') {
       if (v !== lk.first) { lk.mode = 'set1'; $('kilit').dataset.mode = 'set1'; wrong("PIN'ler eşleşmedi. Baştan girin."); return; }
       const salt = Array.from(crypto.getRandomValues ? crypto.getRandomValues(new Uint8Array(12)) : [Date.now()], b => b.toString(16)).join('');
-      pinData = { salt, hash: await pinHash(v, salt) };
+      const hash = await pinHash(v, salt);
+      if (lk.target) {
+        const d = dirById(lk.target);
+        if (d) { d.pin = { salt, hash }; store(DKEY, dirs); if (view === 'dir' && curDir === d.id) unlocked.add(d.id); }
+        lockClose();
+        if ($('dirDlg').open) { updateDirPinUI(); $('dirPinBilgi').textContent = 'Klasör kilitlendi.'; }
+        render();
+        return;
+      }
+      pinData = { salt, hash };
       store(PINKEY, pinData);
       lockClose(); updatePinUI();
       $('pinBilgi').textContent = 'PIN kilidi açıldı. Uygulama bir sonraki açılışta PIN soracak.';
       return;
     }
-    const ok = !!pinData && (await pinHash(v, pinData.salt)) === pinData.hash;
+    const pd = lk.target ? (dirById(lk.target) || {}).pin : pinData;
+    const ok = !!pd && (await pinHash(v, pd.salt)) === pd.hash;
     if (ok) { lk.fails = 0; const done = lk.done; lockClose(); hiddenAt = 0; if (done) done(); return; }
     lk.fails++;
     if (lk.fails >= 5) {
@@ -1028,6 +1255,7 @@
     wrong('Yanlış PIN. Tekrar deneyin.');
   }
   $('kilit').addEventListener('cancel', e => { if (lk.mode === 'unlock') e.preventDefault(); else lk.mode = null; });
+  $('kilit').addEventListener('close', () => { if (!$('kilit').open) lk.mode = null; });
   $('pinVazgec').onclick = lockClose;
   document.addEventListener('keydown', e => {
     if (!lk.mode || !$('kilit').open || $('sifirlaDlg').open) return;
@@ -1052,17 +1280,47 @@
       $('pinBilgi').textContent = 'PIN kilidi kapatıldı.';
     });
   };
-  $('pinUnuttum').onclick = () => { $('sifirlaYaz').value = ''; $('sifirlaWarn').textContent = ''; $('sifirlaDlg').showModal(); };
+  $('pinUnuttum').onclick = () => {
+    const d = lk.target && dirById(lk.target);
+    $('sifirlaTitle').textContent = d ? 'Klasör PIN\'ini mi unuttun?' : "PIN'ini mi unuttun?";
+    $('sifirlaText').textContent = d
+      ? `PIN olmadan bu klasöre ulaşmanın bir yolu yok. Sıfırlarsan "${d.name}" klasörü ve içindeki tüm projeler, kayıtlar ve notlar kalıcı olarak silinir. Diğer projelerin etkilenmez.`
+      : 'PIN olmadan kayıtlarına ulaşmanın bir yolu yok. Uygulamayı sıfırlarsan tüm projeler, kayıtlar, notlar ve kategoriler bu telefondan kalıcı olarak silinir.';
+    $('sifirlaYaz').value = ''; $('sifirlaWarn').textContent = '';
+    $('sifirlaDlg').showModal();
+  };
   $('sifirlaNo').onclick = () => $('sifirlaDlg').close();
   $('sifirlaForm').onsubmit = e => {
     e.preventDefault();
     if ($('sifirlaYaz').value.trim().toLocaleUpperCase('tr') !== 'SİL') { $('sifirlaWarn').textContent = 'Onaylamak için SİL yazın.'; return; }
-    [KEY, PKEY, NKEY, AKEY, MKEY, CKEY, KALKEY, KADKEY, PINKEY].forEach(k => { try { localStorage.removeItem(k); } catch {} });
+    const did = lk.target;
+    if (did) {
+      const pids = projects.filter(p => p.dir === did).map(p => p.id);
+      items = items.filter(i => !pids.includes(i.proj));
+      Object.keys(notes).forEach(k => { if (pids.includes(k.slice(0, k.lastIndexOf('|')))) delete notes[k]; });
+      projects = projects.filter(p => !pids.includes(p.id));
+      if (!projects.length) projects.push({ id: 'genel', name: 'Genel' });
+      if (!projects.some(p => p.id === lastProj)) lastProj = projects[0].id;
+      dirs = dirs.filter(d => d.id !== did);
+      unlocked.delete(did);
+      saveItems(); store(NKEY, notes); store(PKEY, projects); store(DKEY, dirs); store(AKEY, lastProj);
+      $('sifirlaDlg').close(); lockClose();
+      show('home');
+      return;
+    }
+    [KEY, PKEY, NKEY, AKEY, MKEY, CKEY, KALKEY, KADKEY, PINKEY, DKEY].forEach(k => { try { localStorage.removeItem(k); } catch {} });
     location.reload();
   };
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hiddenAt = Date.now(); return; }
-    if (pinData && hiddenAt && Date.now() - hiddenAt >= LOCK_AFTER_MS && lk.mode !== 'unlock') lockOpen('unlock', "PIN'inizi girin");
+    if (hiddenAt && Date.now() - hiddenAt >= LOCK_AFTER_MS) {
+      if (unlocked.size) {
+        unlocked.clear();
+        document.querySelectorAll('dialog[open]').forEach(d => { if (d.id !== 'kilit') d.close(); });
+        if ((view === 'dir' && isDirLocked(curDir)) || (view === 'proj' && projHidden(cur))) show('home'); else render();
+      }
+      if (pinData && lk.mode !== 'unlock') lockOpen('unlock', "PIN'inizi girin");
+    }
     hiddenAt = 0;
   });
 

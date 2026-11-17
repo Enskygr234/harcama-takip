@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
             + "if(d){if(d.id==='meslekDlg')return 'stay';"
             + "if(d.id==='kilit'&&d.dataset.mode==='unlock')return 'exit';"
             + "d.close();return 'closed';}"
-            + "if(history.state&&history.state.p){history.back();return 'back';}"
+            + "if(history.state&&(history.state.p||history.state.f)){history.back();return 'back';}"
             + "if(typeof view!=='undefined'&&view!=='home'&&typeof show==='function'){show('home');return 'home';}"
             + "return 'exit';})()";
 
